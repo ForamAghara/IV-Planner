@@ -6,6 +6,30 @@ if(isset($_SESSION['username']) && isset($_SESSION['user']) ){
 $sel = "SELECT * from `parent` where `p_id` = ".$_SESSION['username']."";
 $result = mysqli_query($conn,$sel);
 $userdata=mysqli_fetch_array($result);
+
+$sel = "SELECT room_preference from `student` where `student_id` = " . $userdata['student_id'];
+$result = mysqli_query($conn,$sel);
+$student=mysqli_fetch_assoc($result);
+
+$sel = "SELECT name from `student` where `room_preference` = '" . $student['room_preference'] . "'";
+$result = mysqli_query($conn,$sel);
+$groups=mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+$sel = "SELECT * from `notification` where `user_type` = 'parent'";
+$result = mysqli_query($conn,$sel);
+$notifications=mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+$sel = "SELECT c_id from `approvals` where `visit_id` = " . $userdata['visit_id'];
+$result = mysqli_query($conn,$sel);
+$c_id=mysqli_fetch_assoc($result)['c_id'];
+
+$sel = "SELECT visit_activities from `company_person` where `c_id` = " . $c_id;
+$result = mysqli_query($conn,$sel);
+$visit_activities=mysqli_fetch_assoc($result)['visit_activities'];
+
+$sel = "SELECT rules_regulations from `company_person` where `c_id` = " . $c_id;
+$result = mysqli_query($conn,$sel);
+$rules_regulations=mysqli_fetch_assoc($result)['rules_regulations'];
 }
 else{
     if($_SESSION['user']=="faculty"){
@@ -126,29 +150,19 @@ else {
                                     </li>
                                     <li>
                                         <div class="message-center">
-                                                <a href="#">
-                                                        <div class="btn btn-danger btn-circle"><i class="ti-user"></i></div>
-                                                        <div class="mail-contnet">
-                                                            <h5>Launch Admin</h5> <span class="mail-desc">Just see the my new admin!</span> <span class="time">9:30 AM</span> </div>
-                                                    </a>
-                                                    <!-- Message -->
-                                                    <a href="#">
-                                                        <div class="btn btn-success btn-circle"><i class="ti-user"></i></div>
-                                                        <div class="mail-contnet">
-                                                            <h5>Event today</h5> <span class="mail-desc">Just a reminder that you have event</span> <span class="time">9:10 AM</span> </div>
-                                                    </a>
-                                                    <!-- Message -->
-                                                    <a href="#">
-                                                         <div class="btn btn-primary btn-circle"><i class="ti-user"></i></div>
-                                                         <div class="mail-contnet">
-                                                             <h5>Pavan kumar</h5> <span class="mail-desc">Just see the my admin!</span> <span class="time">9:02 AM</span> </div>
-                                                     </a>
-                                                    <!-- Message -->
-                                                    <a href="#">
-                                                        <div class="btn btn-info btn-circle"><i class="ti-user"></i></div>
-                                                        <div class="mail-contnet">
-                                                            <h5>Settings</h5> <span class="mail-desc">You can customize this template as you want</span> <span class="time">9:08 AM</span> </div>
-                                                    </a>
+                                        <?php
+                                            foreach($notifications as $notification) :                                                                            
+                                        ?>
+                                            <a href="#">
+                                                <div class="mail-contnet">
+                                                    <h5><?=$notification['title']?></h5>
+                                                    <span class="mail-desc"><?=$notification['info']?></span>
+                                                    <span class="time"><?=$notification['created_at']?></span>
+                                                </div>
+                                            </a>
+                                        <?php
+                                            endforeach;
+                                        ?>
                                         </div>
                                     </li>
                                     <li>
@@ -448,36 +462,22 @@ else {
                                                                     <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
                                                                         <thead>
                                                                             <tr>
-                                                                                <th class="col-md-2">No</th>
-                                                                                <th class="col-md-3">Name</th>
-                                                                               
-                                                                                
-                                                                                
+                                                                                <th>No</th>
+                                                                                <th>Name</th>
                                                                             </tr>
                                                                         </thead>
                                                                         <tbody>
-                                                                            <tr>
-                                                                                <td>1</td>
-                                                                                <td>Foram Aghara</td>
-                                                                           
-                                                                                
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td>2</td>
-                                                                                <td>Jinal Jadeja</td>
-                                                                            
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td>3</td>
-                                                                                <td>Bansi Patel</td>
-                                                                         
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td>4</td>
-                                                                                <td></td>
-                                                                              
-                                                                                
-                                                                            </tr>
+                                                                        <?php
+                                                                            $count = 1;
+                                                                            foreach($groups as $group) :                                                                            
+                                                                        ?>
+                                                                        <tr>
+                                                                            <td><?=$count++?></td>
+                                                                            <td><?=$group['name']?></td>
+                                                                        </tr>
+                                                                        <?php
+                                                                            endforeach;
+                                                                        ?>
                                                                         </tbody>
                                                                 </table>
                                                             </div>
@@ -494,11 +494,22 @@ else {
                     
                 </div>
                 <!-- Row -->
+                <!-- Row -->
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Visit Activities</h4>
+                        <?=$visit_activities?>
+                    </div>
+                </div>                            
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">Rules Regulations</h4>
+                        <?=$rules_regulations?>
+                    </div>
+                </div>                                            
             
                 <!-- Column -->
                  </div>
-                <!-- Row -->
-                
 			</div>
     </div>
                 

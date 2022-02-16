@@ -3,30 +3,46 @@ include('connect-db.php');
 session_start();
 if(isset($_SESSION['username']) && isset($_SESSION['user']) ){
     if($_SESSION['user']=="company"){
-$sel = "SELECT * from `company_person` where `c_id` = ".$_SESSION['username']."";
-$result = mysqli_query($conn,$sel);
-$userdata=mysqli_fetch_array($result);
-}
-else{
-    if($_SESSION['user']=="faculty"){
-        header("Location: faculty.php");
+        $sel = "SELECT * from `company_person` where `c_id` = ".$_SESSION['username']."";
+        $result = mysqli_query($conn,$sel);
+        $userdata=mysqli_fetch_array($result);
+
+        if(isset($_POST['company_feedback']) && isset($_POST['feedback']) && $_POST['feedback'] != '') {
+            $sel = "INSERT INTO companyfeedback (feedback, c_id) VALUES ('". $_POST['feedback'] ."', '" . $userdata['c_id'] . "')";
+            mysqli_query($conn,$sel);
+        }
+
+        $sel = "SELECT visit_id from `approvals` where c_id=" . $userdata['c_id'];
+        $result = mysqli_query($conn,$sel);
+        $visit_id=mysqli_fetch_assoc($result)['visit_id'];
+
+        $sel = "SELECT sf.feedback, sf.date, st.name FROM `studentfeedback` AS sf join `student` AS st WHERE st.student_id = sf.student_id and sf.visit_id=" . $visit_id;
+        $result = mysqli_query($conn,$sel);
+        $studentfeedbacks=mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+        $sel = "SELECT pf.feedback, pf.date, pa.name FROM `parentfeedback` AS pf join `parent` AS pa WHERE pa.p_id = pf.p_id and pf.visit_id=" . $visit_id;
+        $result = mysqli_query($conn,$sel);
+        $parentfeedbacks=mysqli_fetch_all($result, MYSQLI_ASSOC);
+    } else {
+        if($_SESSION['user']=="faculty"){
+            header("Location: faculty.php");
+        }
+        else if($_SESSION['user']=="student"){
+            header("Location: student.php");
+        }
+        else if($_SESSION['user']=="parent"){
+            header("Location: parent.php");
+        }
+        else if($_SESSION['user']=="admin"){
+            header("Location: admin.php");
+        }
+        else if($_SESSION['user']=="agent"){
+            header("Location: agent.php");
+        }
+        else{
+            header("Location: logout.php");
+        }
     }
-    else if($_SESSION['user']=="student"){
-        header("Location: student.php");
-    }
-    else if($_SESSION['user']=="parent"){
-        header("Location: parent.php");
-    }
-    else if($_SESSION['user']=="admin"){
-        header("Location: admin.php");
-    }
-    else if($_SESSION['user']=="agent"){
-        header("Location: agent.php");
-    }
-    else{
-        header("Location: logout.php");
-    }
-}
 }
 else {
 	header("Location: logout.php");
@@ -298,12 +314,12 @@ else {
                             <div class="card">
                                   <div class="card-body">
                                         <h3 class="card-title">Feedbacks</h3>
-                                        <form method="post">
-                                                <div class="form-group">
-                                                    <textarea class="textarea_editor form-control" rows="15" placeholder="Enter feedback and share link of report ..."></textarea>
-                                                </div>
-                                                <a class="btn btn-success" href="" >Submit Feedbacks</a>
-                                            </form>
+                                        <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+                                            <div class="form-group">
+                                                <textarea class="textarea_editor form-control" rows="15" placeholder="Enter feedback and share link of report ..." name="feedback"></textarea>
+                                            </div>
+                                            <button type="submit" name="company_feedback" class="btn btn-success">Submit Feedback</button>
+                                        </form>
                                     </div>                     
                             </div>
                             
@@ -325,57 +341,38 @@ else {
                                 <div class="slimScrollDiv" style="height:607px; overflow: hidden; overflow-y: auto">
                                 <div class="comment-widgets m-b-20">
                                     <!-- Comment Row -->
+                                    <?php
+                                        foreach($studentfeedbacks as $studentfeedback) :                                                                            
+                                    ?>
                                     <div class="d-flex flex-row comment-row">
                                         <div class="p-2"><span class="round"><img src="assets/images/users/1.jpg" alt="user" width="50"></span></div>
                                         <div class="comment-text w-100">
-                                            <h5>James Anderson</h5>
+                                            <h5><?=$studentfeedback['name']?></h5>
                                             <div class="comment-footer">
-                                                <span class="date">Nov 14, 2018</span>
-                                                
-                                                </span>
+                                                <span class="date"><?=$studentfeedback['date']?></span>                                                
                                             </div>
-                                            <p class="m-b-5 m-t-10">Lorem Ipsum is simply dummy text of the printing and type setting industry. Lorem Ipsum has beenorem Ipsum is simply dummy text of the printing and type setting industry.</p>
+                                            <p class="m-b-5 m-t-10"><?=$studentfeedback['feedback']?></p>
                                         </div>
                                     </div>
-                                    <!-- Comment Row -->
-                                    <div class="d-flex flex-row comment-row ">
-                                        <div class="p-2"><span class="round"><img src="assets/images/users/2.jpg" alt="user" width="50"></span></div>
-                                        <div class="comment-text active w-100">
-                                            <h5>Michael Jorden</h5>
-                                            <div class="comment-footer">
-                                                <span class="date">Nov 17, 2018</span>
-                                                
-                                                </span>
-                                            </div>
-                                            <p class="m-b-5 m-t-10">Lorem Ipsum is simply dummy text of the printing and type setting industry. Lorem Ipsum has beenorem Ipsum is simply dummy text of the printing and type setting industry..</p>
-                                        </div>
-                                    </div>
-                                    <!-- Comment Row -->
+                                    <?php
+                                        endforeach;
+                                    ?>
+                                    <?php
+                                        foreach($parentfeedbacks as $parentfeedback) :                                                                            
+                                    ?>
                                     <div class="d-flex flex-row comment-row">
-                                        <div class="p-2"><span class="round"><img src="assets/images/users/3.jpg" alt="user" width="50"></span></div>
+                                        <div class="p-2"><span class="round"><img src="assets/images/users/1.jpg" alt="user" width="50"></span></div>
                                         <div class="comment-text w-100">
-                                            <h5>Johnathan Doeting</h5>
+                                            <h5><?=$parentfeedback['name']?></h5>
                                             <div class="comment-footer">
-                                                <span class="date">Dec 1, 2018</span>
-                                                
-                                                </span>
+                                                <span class="date"><?=$parentfeedback['date']?></span>                                                
                                             </div>
-                                            <p class="m-b-5 m-t-10">Lorem Ipsum is simply dummy text of the printing and type setting industry. Lorem Ipsum has beenorem Ipsum is simply dummy text of the printing and type setting industry.</p>
+                                            <p class="m-b-5 m-t-10"><?=$parentfeedback['feedback']?></p>
                                         </div>
                                     </div>
-                                    <!-- Comment Row -->
-                                    <div class="d-flex flex-row comment-row">
-                                        <div class="p-2"><span class="round"><img src="assets/images/users/4.jpg" alt="user" width="50"></span></div>
-                                        <div class="comment-text w-100">
-                                            <h5>James Anderson</h5>
-                                            <div class="comment-footer">
-                                                <span class="date">Dec 12, 2018</span>
-                                                
-                                                </span>
-                                            </div>
-                                            <p class="m-b-5 m-t-10">Lorem Ipsum is simply dummy text of the printing and type setting industry. Lorem Ipsum has beenorem Ipsum is simply dummy text of the printing and type setting industry..</p>
-                                        </div>
-                                    </div>
+                                    <?php
+                                        endforeach;
+                                    ?>
                                 </div>
                             </div>
                             </div>

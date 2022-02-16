@@ -6,6 +6,11 @@ if(isset($_SESSION['username']) && isset($_SESSION['user']) ){
 $sel = "SELECT * from `agent` where `a_id` = ".$_SESSION['username']."";
 $result = mysqli_query($conn,$sel);
 $userdata=mysqli_fetch_array($result);
+    if(isset($_POST['status']))
+    {
+        $sel = "INSERT INTO my_status (name, description, f_id, a_id) VALUES ('".$userdata['name']."','".$_POST['description']."', " .$userdata['f_id']. ", " .$userdata['a_id']. ")";
+        mysqli_query($conn,$sel);
+    }
 }
 else{
     if($_SESSION['user']=="faculty"){
@@ -298,11 +303,11 @@ else {
                                           <div class="card-body">
                                                 <h3 class="card-title">Update Status</h3>
                                                 <form method="post">
-                                                        <div class="form-group">
-                                                            <textarea class="textarea_editor form-control" rows="15" placeholder="Enter feedback and share link of report ..."></textarea>
-                                                        </div>
-                                                        <a class="btn btn-success" href="" >Post</a>
-                                                    </form>
+                                                <div class="form-group">
+                                                    <textarea class="textarea_editor form-control" rows="15" placeholder="Enter feedback and share link of report ..." name="description"></textarea>
+                                                </div>
+                                                <button type="submit" name="status" class="btn btn-success">Post</button>
+                                            </form>
                                             </div>                     
                                     </div>
                                     

@@ -1,32 +1,69 @@
 <?php
 include('connect-db.php');
 session_start();
-if(isset($_SESSION['username']) && isset($_SESSION['user'])){
-    if($_SESSION['user']=="student"){
-$sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username']."";
-$result = mysqli_query($conn,$sel);
-$userdata=mysqli_fetch_array($result);
-}
-else{
-    if($_SESSION['user']=="faculty"){
-        header("Location: faculty.php");
+if(isset($_SESSION['username']) && isset($_SESSION['user']))
+{
+    if($_SESSION['user']=="student") {
+        $sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username']."";
+        $result = mysqli_query($conn,$sel);
+        $userdata=mysqli_fetch_assoc($result);
+
+        if(isset($_POST['student_add']) && isset($_POST['student_id']) && $_POST['student_id'] != '') {
+            if($userdata['room_preference'] == '') {
+                $sel = "UPDATE student SET room_preference = '" . substr($userdata['enroll_no'], -5) . "' WHERE student_id = " . $userdata['student_id'];
+                mysqli_query($conn,$sel);    
+                $sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username']."";
+                $result = mysqli_query($conn,$sel);
+                $userdata=mysqli_fetch_assoc($result);
+            }
+            $sel = "UPDATE student SET room_preference = '" . $userdata['room_preference'] . "' WHERE student_id = " . $_POST['student_id'];
+            mysqli_query($conn,$sel);
+        }
+
+        if(isset($_POST['student_remove']) && isset($_POST['student_id']) && $_POST['student_id'] != '') {
+            $sel = "UPDATE student SET room_preference = null WHERE student_id = " . $_POST['student_id'];
+            mysqli_query($conn,$sel);
+            $sel = "SELECT student_id from `student` where `room_preference` = '" . $userdata['room_preference'] . "' AND `student_id` != '" . $userdata['student_id'] . "'";
+            $result = mysqli_query($conn,$sel);
+            if(mysqli_num_rows($result) == 0) {
+                $sel = "UPDATE student SET room_preference = null WHERE student_id = " . $userdata['student_id'];
+                mysqli_query($conn,$sel);    
+            }
+        }
+
+        if(isset($_POST['student_exit'])) {
+            $sel = "UPDATE student SET room_preference = null WHERE student_id = " . $userdata['student_id'];
+            mysqli_query($conn,$sel);
+            $userdata['room_preference'] = null;
+        }
+
+        $sel = "SELECT student_id, name, class, email_id, mobile_no, room_preference from `student` where `room_preference` = '" . $userdata['room_preference'] . "' AND `student_id` != '" . $userdata['student_id'] . "'";
+        $result = mysqli_query($conn,$sel);
+        $groups=mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+        $sel = "SELECT student_id, name from `student` where `room_preference` IS NULL AND `gender` = '" . $userdata['gender'] . "' AND `student_id` != '" . $userdata['student_id'] . "' AND `visit_id` = '" . $userdata['visit_id'] . "'";
+        $result = mysqli_query($conn,$sel);
+        $students=mysqli_fetch_all($result, MYSQLI_ASSOC);        
+    } else {
+        if($_SESSION['user']=="faculty") {
+            header("Location: faculty.php");
+        }
+        else if($_SESSION['user']=="admin") {
+            header("Location: admin.php");
+        }
+        else if($_SESSION['user']=="parent") {
+            header("Location: parent.php");
+        }
+        else if($_SESSION['user']=="company") {
+            header("Location: company.php");
+        }
+        else if($_SESSION['user']=="agent") {
+            header("Location: agent.php");
+        }
+        else {
+            header("Location: logout.php");
+        }
     }
-    else if($_SESSION['user']=="admin"){
-        header("Location: admin.php");
-    }
-    else if($_SESSION['user']=="parent"){
-        header("Location: parent.php");
-    }
-    else if($_SESSION['user']=="company"){
-        header("Location: company.php");
-    }
-    else if($_SESSION['user']=="agent"){
-        header("Location: agent.php");
-    }
-    else{
-        header("Location: logout.php");
-    }
-}
 }
 else {
 	header("Location: logout.php");
@@ -316,77 +353,95 @@ else {
                             <div class="card">
                                   <div class="card-body">
                                           <h4 class="card-title">Room Allocation</h4>
-      
-                                          <div class="form-group row">
-                                                  <label for="example-text-input" class="col-md-4 col-form-label">Select Students</label>
-                                                  <div class="col-md-6">
-                                                          <select class="selectpicker m-b-20 m-r-10" data-style="btn-info btn-outline-info">
-                                                                  <option data-tokens="" selected disabled>Students</option>
-                                                                  <option data-tokens="">Bansi Patel</option>
-                                                                  <option data-tokens="">Aarushi Sardhara</option>
-                                                                  <option data-tokens="">Jinal Jadeja</option>
-                                                              </select>            
-                                                  </div>
-                                                  <div class="col-md-2">
-                                                        <a href="" class="btn btn-warning">Add</a>
-                                                    </div>
-                                              </div>
-
-                                              
+                                            <?php
+                                                if(count($groups) < 4):
+                                            ?>
+                                            <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+                                                <div class="form-group row">
+                                                    <label for="example-text-input" class="col-md-4 col-form-label">Select Students</label>
+                                                        <div class="col-md-6">
+                                                            <select name="student_id" class="selectpicker m-b-20 m-r-10" data-style="btn-info btn-outline-info">
+                                                                <option selected disabled>Students</option>
+                                                                <?php
+                                                                    foreach($students as $student) :
+                                                                ?>
+                                                                    <option value="<?=$student['student_id']?>"><?=$student['name']?></option>
+                                                                <?php
+                                                                    endforeach;
+                                                                ?>
+                                                            </select>            
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <button type="submit" class="btn btn-warning" name="student_add">Add</button>
+                                                        </div>
+                                                </div>
+                                            </form>
+                                            <?php
+                                                endif;
+                                            ?>
                                               <div class="form-group row">
                                                     <div class="table-responsive">
-                                                            <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th class="col-md-2">No</th>
-                                                                        <th class="col-md-3">Name</th>
-                                                                        <th class="col-md-2">Class</th>
-                                                                        <th class="col-md-3">EmailID</th>
-                                                                        <th class="col-md-2">Mobile No.</th>
-                                                                        
-                                                                        
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>1</td>
-                                                                        <td>Foram Aghara</td>
-                                                                        <td>C1</td>
-                                                                        <td>foram@gmail.com</td>
-                                                                        <td>9856236326</td>
-                                                                        
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td>2</td>
-                                                                        <td>Jinal Jadeja</td>
-                                                                        <td>C1</td>
-                                                                        <td>jinal@gmail.com</td>
-                                                                        <td>8523697415</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td>3</td>
-                                                                        <td>Bansi Patel</td>
-                                                                        <td>C1</td>
-                                                                        <td>bansi@gmail.com</td>
-                                                                        <td>7856392146</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td>4</td>
-                                                                        <td></td>
-                                                                        <td></td>
-                                                                        <td></td>
-                                                                        <td></td>
-                                                                        
-                                                                    </tr>
-                                                                </tbody>
+                                                        <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>No</th>
+                                                                    <th>Name</th>
+                                                                    <th>Class</th>
+                                                                    <th>EmailID</th>
+                                                                    <th>Mobile No.</th>
+                                                                    <th>Remove</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>1</td>
+                                                                    <td><?=$userdata['name']?></td>
+                                                                    <td><?=$userdata['class']?></td>
+                                                                    <td><?=$userdata['email_id']?></td>
+                                                                    <td><?=$userdata['mobile_no']?></td>                                                                        
+                                                                    <td>
+                                                                        <?php
+                                                                            if(substr($userdata['enroll_no'], -5) != $userdata['room_preference'] && $userdata['room_preference'] != null):
+                                                                        ?>
+                                                                        <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+                                                                            <button type="submit" name="student_exit" class="btn btn-sm btn-danger"><i class="mdi mdi-close"></i></button>
+                                                                        </form>                                                                        
+                                                                        <?php
+                                                                            endif;
+                                                                        ?>
+                                                                    </td>
+                                                                </tr>
+                                                                <?php
+                                                                    $count = 2;
+                                                                    foreach($groups as $group) :                                                                            
+                                                                ?>
+                                                                <tr>
+                                                                    <td><?=$count++?></td>
+                                                                    <td><?=$group['name']?></td>
+                                                                    <td><?=$group['class']?></td>
+                                                                    <td><?=$group['email_id']?></td>
+                                                                    <td><?=$group['mobile_no']?></td>                                                                        
+                                                                    <td>
+                                                                        <?php
+                                                                            if(substr($userdata['enroll_no'], -5) == $group['room_preference']):
+                                                                        ?>
+                                                                        <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+                                                                            <input type="hidden" name="student_id" value="<?=$group['student_id']?>" />
+                                                                            <button type="submit" name="student_remove" class="btn btn-sm btn-danger"><i class="mdi mdi-close"></i></button>
+                                                                        </form>
+                                                                        <?php
+                                                                            endif;
+                                                                        ?>
+                                                                    </td>
+                                                                </tr>
+                                                                <?php
+                                                                    endforeach;
+                                                                ?>
+                                                            </tbody>
                                                         </table>
                                                     </div>
 
                                                   </div>
-                                            <div class="form-group row">
-                                                          <div class="col-md-4">
-                                                  <a href="" class="btn btn-success">Save</a>
-                                              </div>
                                               </div>    
                                    </div>
                                         

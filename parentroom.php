@@ -6,6 +6,14 @@ if(isset($_SESSION['username']) && isset($_SESSION['user']) ){
 $sel = "SELECT * from `parent` where `p_id` = ".$_SESSION['username']."";
 $result = mysqli_query($conn,$sel);
 $userdata=mysqli_fetch_array($result);
+
+$sel = "SELECT room_preference from `student` where `student_id` = " . $userdata['student_id'];
+$result = mysqli_query($conn,$sel);
+$student=mysqli_fetch_assoc($result);
+
+$sel = "SELECT name, class, email_id, mobile_no from `student` where `room_preference` = '" . $student['room_preference'] . "'";
+$result = mysqli_query($conn,$sel);
+$groups=mysqli_fetch_all($result, MYSQLI_ASSOC);
 }
 else{
     if($_SESSION['user']=="faculty"){
@@ -324,50 +332,32 @@ else {
                                               
                                               <div class="form-group row">
                                                     <div class="table-responsive">
-                                                            <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th class="col-md-2">No</th>
-                                                                        <th class="col-md-3">Name</th>
-                                                                        <th class="col-md-2">Class</th>
-                                                                        <th class="col-md-3">EmailID</th>
-                                                                        <th class="col-md-2">Mobile No.</th>
-                                                                        
-                                                                        
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <tr>
-                                                                        <td>1</td>
-                                                                        <td>Foram Aghara</td>
-                                                                        <td>C1</td>
-                                                                        <td>foram@gmail.com</td>
-                                                                        <td>9856236326</td>
-                                                                        
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td>2</td>
-                                                                        <td>Jinal Jadeja</td>
-                                                                        <td>C1</td>
-                                                                        <td>jinal@gmail.com</td>
-                                                                        <td>8523697415</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td>3</td>
-                                                                        <td>Bansi Patel</td>
-                                                                        <td>C1</td>
-                                                                        <td>bansi@gmail.com</td>
-                                                                        <td>7856392146</td>
-                                                                    </tr>
-                                                                    <tr>
-                                                                        <td>4</td>
-                                                                        <td></td>
-                                                                        <td></td>
-                                                                        <td></td>
-                                                                        <td></td>
-                                                                        
-                                                                    </tr>
-                                                                </tbody>
+                                                        <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>No</th>
+                                                                    <th>Name</th>
+                                                                    <th>Class</th>
+                                                                    <th>EmailID</th>
+                                                                    <th>Mobile No.</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <?php
+                                                                    $count = 1;
+                                                                    foreach($groups as $group) :                                                                            
+                                                                ?>
+                                                                <tr>
+                                                                    <td><?=$count++?></td>
+                                                                    <td><?=$group['name']?></td>
+                                                                    <td><?=$group['class']?></td>
+                                                                    <td><?=$group['email_id']?></td>
+                                                                    <td><?=$group['mobile_no']?></td>                                                                        
+                                                                </tr>
+                                                                <?php
+                                                                    endforeach;
+                                                                ?>
+                                                            </tbody>
                                                         </table>
                                                     </div>
 

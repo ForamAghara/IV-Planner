@@ -293,6 +293,74 @@ else {
                 <!-- Row -->
                 
                 <!-- Row -->
+                <div class="row"  >
+                    <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Approved Requests</h4>
+										 <div class="table-responsive">
+                                         
+                                             <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post">
+                                            <table id="demo-foo-addrow" class="table m-t-30 table-hover no-wrap contact-list" data-page-size="10">
+                                                <thead>
+                                                    <tr>
+                                                        <th>No.</th>
+                                                        <th>College</th>
+                                                        <th>Students</th>
+                                                        <th>Visit from</th>
+                                                        <th>Visit to</th>
+                                                        <th>Status</th>
+                                                        <th>Action</th>
+                                                        
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                  <?php
+                                                        $sql = "SELECT * FROM `approvals` where `c_id` =".$userdata['c_id']." AND `status`= 'approved'";
+                                                        $result = $conn->query($sql);
+                                                        $i = 0;
+                                                        if(mysqli_num_rows($result)>0)
+                                                           {
+                                                             while($data=mysqli_fetch_array($result))
+                                                            {
+                                                               $i++;
+																$sel = "SELECT * FROM `faculty` where `f_id` =".$data['f_id']."";
+                                                                $rel = $conn->query($sel);
+                                                                $fdata = mysqli_fetch_array($rel);
+
+                                                   ?>
+
+                                                    <tr>
+                                                        <td><?php echo $i;?></td>
+
+                                                        <td><?php echo $fdata['college']; ?></td>
+                                                        <td><?php echo $data['students']; ?></td>
+                                                        <td><?php echo $userdata['start_date']; ?></td>
+                                                        <td><?php echo $userdata['end_date']; ?></td>
+                                                        <input type="hidden" name="fid" value="<?php echo $data['f_id'];?>">
+                                                        <input type="hidden" name="vid" value="<?php echo $data['visit_id'];?>">
+                                                        <td><span class="<?php if($data['status']=="approved") { echo "label label-info"; } else {echo "label label-inverse";}?>"><?php echo $data['status'];?></span></td>
+                                                        <td><input type="submit" id="cancel_btn" class="btn btn-inverse" title="Cancel"  name="cancel_btn" value="Cancel"></td>
+                                                    </tr> 
+                                                    <?php
+                                                      
+                                                        }
+                                                      }
+
+                                                    ?>
+                                                    
+                                                </tbody>
+                                                </form>
+                                              </table>
+                                            
+                                        </div>
+                                      </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+				
                 <div class="row">
                     <!-- Column -->
                     <div class="col-12">
@@ -317,7 +385,6 @@ else {
                                                             <th>Students</th>
                                                             <th>Visit From</th>
                                                             <th>Visit To</th>
-                                                            <th>Status</th>
                                                             <th>Action</th>
                                                             
                                                         </tr>
@@ -348,10 +415,9 @@ else {
                                                             <td><?php echo $data['students'];?></td>
                                                             <td><?php echo $vdata['starting_date'];?></td>
                                                             <td><?php echo $vdata['ending_date'];?></td>
-                                                            <td><span class="<?php if($data['status']=="approved") { echo "label label-info"; } else {echo "label label-inverse";}?>"><?php echo $data['status'];?></span></td>
                                                             <input type="hidden" name="fid" value="<?php echo $data['f_id'];?>">
                                                             <input type="hidden" name="vid" value="<?php echo $data['visit_id'];?>">
-                                                            <td><input type="submit" id="submit_btn" class="btn btn-success"  name="submit_btn" value="Approve">&nbsp;<input type="submit" id="cancel_btn" class="btn btn-inverse" title="Cancel"  name="cancel_btn" value="Cancel"></td>
+                                                            <td><input type="submit" id="submit_btn" class="btn btn-success"  name="submit_btn" value="Approve"></td>
                                                         </tr>
                                                         <?php
                                                       

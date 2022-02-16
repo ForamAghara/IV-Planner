@@ -483,6 +483,11 @@ function show_difference() {
 
     var d2 = new Date(document.getElementById("enddate").value);
     var date2_tm = d2.getTime();
+	
+	
+	if(d1>d2){
+		alert("Select End date greater than Start date!!!");
+	}
 
     var diff_days = Math.abs((date2_tm - date1_tm) / 86400000);
     diff_days = Math.floor(diff_days) + 1;
@@ -512,7 +517,7 @@ for(var i=1; i< days+1 ; i++){
 
     var start = new Date(year, month, day+a);
     
-    var m = start.getUTCMonth() + 1; 
+    var m = start.getUTCMonth() ; 
     var d = start.getUTCDate();
     var y = start.getUTCFullYear();
     var newdate = d+ "/" + m + "/" + y;
@@ -655,7 +660,7 @@ for(var i=1; i< days+1 ; i++){
         
 
 
-    $sql7 = "INSERT into parent(`name`,`email_id`,`mobile_no`,`password`,`student_id`,`f_id`,`visit_id`) VALUES ('".$fname."','".$fmail."','".$fmobile."','".$fpassword."','".$sid."','".$fid."','".$vid."')";
+   $sql7 = "INSERT into parent(`name`,`email_id`,`mobile_no`,`password`,`student_id`,`f_id`,`visit_id`) VALUES ('".$fname."','".$fmail."','".$fmobile."','".$fpassword."','".$sid."','".$fid."','".$vid."')";
     $result7 = mysqli_query($conn, $sql7);
 
 
@@ -715,13 +720,12 @@ for(var i=1; i< days+1 ; i++){
    fclose($handle);
   }
   
-
-//   echo("Error description: " . mysqli_error($conn));
+   echo("Error description: " . mysqli_error($conn));
 
 echo '<script>
 window.location.href="facultycreatetrip.php";
  </script> ';
-}   
+ }   
     
     
     

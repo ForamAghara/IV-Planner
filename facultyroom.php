@@ -3,9 +3,60 @@ include('connect-db.php');
 session_start();
 if(isset($_SESSION['username']) && isset($_SESSION['user']) ){
     if($_SESSION['user']=="faculty"){
-$sel = "SELECT * from `faculty` where `f_id` = ".$_SESSION['username']."";
-$result = mysqli_query($conn,$sel);
-$userdata=mysqli_fetch_array($result);
+        $sel = "SELECT * from `faculty` where `f_id` = ".$_SESSION['username']."";
+        $result = mysqli_query($conn,$sel);
+        $userdata=mysqli_fetch_array($result);
+
+        if(isset($_POST['edit'])) {
+            $sel = "UPDATE student SET room_preference = '" . $_POST['room_preference'] . "' WHERE room_preference = " . $_POST['old_room_preference'];
+            mysqli_query($conn,$sel);    
+        }
+
+        if(isset($_POST['gender']) && $_POST['gender'] == 'M') {
+            $sel = "SELECT `room_preference` FROM `student`where room_preference is not null and gender = 'M' and f_id = " . $userdata['f_id'] . " GROUP BY `room_preference`";
+        } else if(isset($_POST['gender']) && $_POST['gender'] == 'G') {
+            $sel = "SELECT `room_preference` FROM `student`where room_preference is not null and gender = 'G' and f_id = " . $userdata['f_id'] . " GROUP BY `room_preference`";
+        } else {
+            $sel = "SELECT `room_preference` FROM `student`where room_preference is not null and f_id = " . $userdata['f_id'] . " GROUP BY `room_preference`";
+        }
+
+        $result = mysqli_query($conn,$sel);
+        $groups=mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+        $sel = "SELECT count(student_id) student from `student`";
+        $result = mysqli_query($conn,$sel);
+        $registered_students=mysqli_fetch_assoc($result)['student'];
+
+        $sel = "SELECT count(student_id) student from `student`where gender = 'M'";
+        $result = mysqli_query($conn,$sel);
+        $number_of_boys=mysqli_fetch_assoc($result)['student'];
+
+        $sel = "SELECT count(student_id) student from `student`where gender = 'G'";
+        $result = mysqli_query($conn,$sel);
+        $number_of_girls=mysqli_fetch_assoc($result)['student'];
+
+        $sel = "SELECT count(student_id) student from `student`where `room_preference` IS NULL";
+        $result = mysqli_query($conn,$sel);
+        $unallocated_students=mysqli_fetch_assoc($result)['student'];
+
+        if(isset($_POST['csv'])) {
+            $filename = 'RoomAllocation.csv';
+            $fp = @fopen( 'php://output', 'w' );
+            header('Content-type: application/csv');
+            header('Content-Disposition: attachment; filename='.$filename);            
+            foreach($groups as $group) :
+                fputcsv($fp, $group);
+                $sel = "SELECT name from `student` where `room_preference` = '" . $group['room_preference'] . "'";
+                $result = mysqli_query($conn,$sel);
+                $students=mysqli_fetch_all($result, MYSQLI_ASSOC);
+                $count = 1;
+                foreach($students as $student) :                                                                            
+                    fputcsv($fp, $student);
+                endforeach;
+            endforeach;
+            fclose($fp);
+            exit;
+        }
 }
 else{
     if($_SESSION['user']=="admin"){
@@ -325,18 +376,22 @@ else {
                                             
                                        <h3 class="card-title">Room Preferences and Insights</h3>
                                        <div class="col-md-4">
-                                        <select class="selectpicker m-b-20 m-r-10" data-style="btn-info btn-outline-info">
-                                                <option data-tokens="" selected disabled>Category</option>
-                                                <option data-tokens="">ALL</option>
-                                                <option data-tokens="">BOYS</option>
-                                                <option data-tokens="">GIRLS</option>
-                                            </select>            
+                                        <form method="POST" action="<?=$_SERVER['PHP_SELF']?>" id="gender">
+                                            <select name="gender" class="selectpicker m-b-20 m-r-10" data-style="btn-info btn-outline-info" onchange="document.getElementById('gender').submit();">
+                                                <option selected disabled>Category</option>
+                                                <option>ALL</option>
+                                                <option  value="M">BOYS</option>
+                                                <option  value="G">GIRLS</option>
+                                            </select>    
+                                        </form>        
                                 </div>
                                         <div class="ml-auto">
                                                         
                                             </div>
                                             <div class="col-md-2">
-                                                      <a href="" class=" pull-right btn btn-success"><i class="mdi mdi-download"></i><span>Download Report</span></a>
+                                                <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+                                                      <button name="csv" class=" pull-right btn btn-success"><i class="mdi mdi-download"></i><span>Download Report</span></button>
+                                                </form>
                                             </div>
                                     </div>
                                         <div class="row m-t-40">
@@ -344,7 +399,7 @@ else {
                                                 <div class="col-md-6 col-lg-3 col-xlg-3">
                                                     <div class="card card-inverse card-info">
                                                         <div class="box bg-info text-center">
-                                                            <h1 class="font-light text-white">150</h1>
+                                                            <h1 class="font-light text-white"><?=$registered_students?></h1>
                                                             <h6 class="text-white">Registered Students</h6>
                                                         </div>
                                                     </div>
@@ -353,7 +408,7 @@ else {
                                                 <div class="col-md-6 col-lg-3 col-xlg-3">
                                                     <div class="card card-success card-inverse">
                                                         <div class="box text-center">
-                                                            <h1 class="font-light text-white">90</h1>
+                                                            <h1 class="font-light text-white"><?=$number_of_boys?></h1>
                                                             <h6 class="text-white">Number Of Boys</h6>
                                                         </div>
                                                     </div>
@@ -362,7 +417,7 @@ else {
                                                 <div class="col-md-6 col-lg-3 col-xlg-3">
                                                     <div class="card card-inverse card-danger">
                                                         <div class="box text-center">
-                                                            <h1 class="font-light text-white">60</h1>
+                                                            <h1 class="font-light text-white"><?=$number_of_girls?></h1>
                                                             <h6 class="text-white">Number of Girls</h6>
                                                         </div>
                                                     </div>
@@ -371,7 +426,7 @@ else {
                                                 <div class="col-md-6 col-lg-3 col-xlg-3">
                                                     <div class="card card-inverse card-dark">
                                                         <div class="box text-center">
-                                                            <h1 class="font-light text-white">35</h1>
+                                                            <h1 class="font-light text-white"><?=$unallocated_students?></h1>
                                                             <h6 class="text-white">Unallocated students</h6>
                                                         </div>
                                                     </div>
@@ -379,393 +434,58 @@ else {
                                                 <!-- Column -->
                                             </div>
                                             <div class="row">
-                                                    <!-- Column -->
-                                                    <div class="col-3">
-                                                            <div class="card">
-                                                                  <div class="card-body">
-                                                                          <h4 class="card-title">Room Id 1<span><a href="#editRoomModal" class="edit "  data-toggle="modal"><i class="pull-right mdi mdi-marker" data-toggle="tooltip" title="Edit Room ID"></i></a></span></h4>                         
-                                                                              
-                                                                              <div class="form-group row">
-                                                                                    <div class="table-responsive">
-                                                                                            <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
-                                                                                                <thead>
-                                                                                                    <tr>
-                                                                                                        <th class="col-md-2">No</th>
-                                                                                                        <th class="col-md-8">Name</th>
-                                                                                                        
-                                                                                                    </tr>
-                                                                                                </thead>
-                                                                                                <tbody>
-                                                                                                    <tr>
-                                                                                                        <td>1</td>
-                                                                                                        <td>Foram Aghara</td>
-                                                                                                        
-                                                                                                    </tr>
-                                                                                                    <tr>
-                                                                                                        <td>2</td>
-                                                                                                        <td>Jinal Jadeja</td>
-                                                                                                        
-                                                                                                    </tr>
-                                                                                                    <tr>
-                                                                                                        <td>3</td>
-                                                                                                        <td>Bansi Patel</td>
-                                                                                                        
-                                                                                                    </tr>
-                                                                                                    <tr>
-                                                                                                        <td>4</td>
-                                                                                                        <td>John Doe</td>
-                                                                                                        <td></td>
-                                                                                                    </tr>
-                                                                                                </tbody>
-                                                                                        </table>
-                                                                                    </div>
-                                
-                                                                                  </div>
-                                                                             
-                                                                   </div>
-                                                                        
-                                                                          
-                                                                  </div>
-                                                                  
+                                                <!-- Column -->
+                                                <?php
+                                                    foreach($groups as $group) :
+                                                        $sel = "SELECT name from `student` where `room_preference` = '" . $group['room_preference'] . "'";
+                                                        $result = mysqli_query($conn,$sel);
+                                                        $students=mysqli_fetch_all($result, MYSQLI_ASSOC);
+                                                ?>
+                                                <div class="col-3">
+                                                    <div class="card">
+                                                        <div class="card-body">
+                                                            <h4 class="card-title"><?=$group['room_preference']?>
+                                                            <?php
+                                                                $room_preference = $group['room_preference'];
+                                                            ?>
+                                                                <span>
+                                                                    <a href="#editRoomModal" class="edit "  data-toggle="modal" onclick="edit('<?=$room_preference?>')">
+                                                                        <i class="pull-right mdi mdi-marker" data-toggle="tooltip" title="Edit Room ID"></i>
+                                                                    </a>
+                                                                </span>
+                                                            </h4>                                                                        
+                                                            <div class="form-group row">
+                                                                <div class="table-responsive">
+                                                                    <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
+                                                                        <thead>
+                                                                            <tr>
+                                                                                <th>No</th>
+                                                                                <th>Name</th>                                                                                    
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <?php
+                                                                                $count = 1;
+                                                                                foreach($students as $student) :                                                                            
+                                                                            ?>
+                                                                            <tr>
+                                                                                <td><?=$count++?></td>                                                                                       
+                                                                                <td><?=$student['name']?></td>
+                                                                            </tr>
+                                                                            <?php
+                                                                                endforeach;
+                                                                            ?>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>                
+                                                            </div>                                                                        
                                                         </div>
-                                                    <div class="col-3">
-                                                                    <div class="card">
-                                                                          <div class="card-body">
-                                                                            <h4 class="card-title">Room Id 2<span><i class="pull-right mdi mdi-marker" data-toggle="tooltip" title="Edit Room ID"></i></span></h4>                          
-                                                                                      
-                                                                                      <div class="form-group row">
-                                                                                            <div class="table-responsive">
-                                                                                                    <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
-                                                                                                        <thead>
-                                                                                                            <tr>
-                                                                                                                <th class="col-md-2">No</th>
-                                                                                                                <th class="col-md-8">Name</th>
-                                                                                                                
-                                                                                                            </tr>
-                                                                                                        </thead>
-                                                                                                        <tbody>
-                                                                                                            <tr>
-                                                                                                                <td>1</td>
-                                                                                                                <td>Foram Aghara</td>
-                                                                                                                
-                                                                                                            </tr>
-                                                                                                            <tr>
-                                                                                                                <td>2</td>
-                                                                                                                <td>Jinal Jadeja</td>
-                                                                                                                
-                                                                                                            </tr>
-                                                                                                            <tr>
-                                                                                                                <td>3</td>
-                                                                                                                <td>Bansi Patel</td>
-                                                                                                                
-                                                                                                            </tr>
-                                                                                                            <tr>
-                                                                                                                <td>4</td>
-                                                                                                                <td>John Doe</td>
-                                                                                                                <td></td>
-                                                                                                            </tr>
-                                                                                                        </tbody>
-                                                                                                </table>
-                                                                                            </div>
-                                        
-                                                                                          </div>
-                                                                                     
-                                                                           </div>
-                                                                                
-                                                                                  
-                                                                          </div>
-                                                                          
-                                                        </div> 
-                                                    <div class="col-3">
-                                                                            <div class="card">
-                                                                                  <div class="card-body">
-                                                                                    <h4 class="card-title">Room Id 3<span><i class="pull-right mdi mdi-marker" data-toggle="tooltip" title="Edit Room ID"></i></span></h4>                          
-                                                                                              
-                                                                                              <div class="form-group row">
-                                                                                                    <div class="table-responsive">
-                                                                                                            <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
-                                                                                                                <thead>
-                                                                                                                    <tr>
-                                                                                                                        <th class="col-md-2">No</th>
-                                                                                                                        <th class="col-md-8">Name</th>
-                                                                                                                        
-                                                                                                                    </tr>
-                                                                                                                </thead>
-                                                                                                                <tbody>
-                                                                                                                    <tr>
-                                                                                                                        <td>1</td>
-                                                                                                                        <td>Foram Aghara</td>
-                                                                                                                        
-                                                                                                                    </tr>
-                                                                                                                    <tr>
-                                                                                                                        <td>2</td>
-                                                                                                                        <td>Jinal Jadeja</td>
-                                                                                                                        
-                                                                                                                    </tr>
-                                                                                                                    <tr>
-                                                                                                                        <td>3</td>
-                                                                                                                        <td>Bansi Patel</td>
-                                                                                                                        
-                                                                                                                    </tr>
-                                                                                                                    <tr>
-                                                                                                                        <td>4</td>
-                                                                                                                        <td>John Doe</td>
-                                                                                                                        <td></td>
-                                                                                                                    </tr>
-                                                                                                                </tbody>
-                                                                                                        </table>
-                                                                                                    </div>
-                                                
-                                                                                                  </div>
-                                                                                             
-                                                                                   </div>
-                                                                                        
-                                                                                          
-                                                                                  </div>
-                                                                                  
-                                                        </div>    
-                                                    <div class="col-3">
-                                                                                    <div class="card">
-                                                                                          <div class="card-body">
-                                                                                            <h4 class="card-title">Room Id 4<span><i class="pull-right mdi mdi-marker" data-toggle="tooltip" title="Edit Room ID"></i></span></h4>                          
-                                                                                                      
-                                                                                                      <div class="form-group row">
-                                                                                                            <div class="table-responsive">
-                                                                                                                    <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
-                                                                                                                        <thead>
-                                                                                                                            <tr>
-                                                                                                                                <th class="col-md-2">No</th>
-                                                                                                                                <th class="col-md-8">Name</th>
-                                                                                                                                
-                                                                                                                            </tr>
-                                                                                                                        </thead>
-                                                                                                                        <tbody>
-                                                                                                                            <tr>
-                                                                                                                                <td>1</td>
-                                                                                                                                <td>Foram Aghara</td>
-                                                                                                                                
-                                                                                                                            </tr>
-                                                                                                                            <tr>
-                                                                                                                                <td>2</td>
-                                                                                                                                <td>Jinal Jadeja</td>
-                                                                                                                                
-                                                                                                                            </tr>
-                                                                                                                            <tr>
-                                                                                                                                <td>3</td>
-                                                                                                                                <td>Bansi Patel</td>
-                                                                                                                                
-                                                                                                                            </tr>
-                                                                                                                            <tr>
-                                                                                                                                <td>4</td>
-                                                                                                                                <td>John Doe</td>
-                                                                                                                                <td></td>
-                                                                                                                            </tr>
-                                                                                                                        </tbody>
-                                                                                                                </table>
-                                                                                                            </div>
-                                                        
-                                                                                                          </div>
-                                                                                                     
-                                                                                           </div>
-                                                                                                
-                                                                                                  
-                                                                                          </div>
-                                                                                          
-                                                        </div>  
-                                                    <div class="col-3">
-                                                                <div class="card">
-                                                                      <div class="card-body">
-                                                                        <h4 class="card-title">Room Id 5<span><i class="pull-right mdi mdi-marker" data-toggle="tooltip" title="Edit Room ID"></i></span></h4>                          
-                                                                                  
-                                                                                  <div class="form-group row">
-                                                                                        <div class="table-responsive">
-                                                                                                <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
-                                                                                                    <thead>
-                                                                                                        <tr>
-                                                                                                            <th class="col-md-2">No</th>
-                                                                                                            <th class="col-md-8">Name</th>
-                                                                                                            
-                                                                                                        </tr>
-                                                                                                    </thead>
-                                                                                                    <tbody>
-                                                                                                        <tr>
-                                                                                                            <td>1</td>
-                                                                                                            <td>Foram Aghara</td>
-                                                                                                            
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td>2</td>
-                                                                                                            <td>Jinal Jadeja</td>
-                                                                                                            
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td>3</td>
-                                                                                                            <td>Bansi Patel</td>
-                                                                                                            
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td>4</td>
-                                                                                                            <td>John Doe</td>
-                                                                                                            <td></td>
-                                                                                                        </tr>
-                                                                                                    </tbody>
-                                                                                            </table>
-                                                                                        </div>
-                                    
-                                                                                      </div>
-                                                                                 
-                                                                       </div>
-                                                                            
-                                                                              
-                                                                      </div>
-                                                                      
-                                                        </div>
-                                                    <div class="col-3">
-                                                                        <div class="card">
-                                                                              <div class="card-body">
-                                                                                <h4 class="card-title">Room Id 6<span><i class="pull-right mdi mdi-marker" data-toggle="tooltip" title="Edit Room ID"></i></span></h4>                          
-                                                                                          
-                                                                                          <div class="form-group row">
-                                                                                                <div class="table-responsive">
-                                                                                                        <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
-                                                                                                            <thead>
-                                                                                                                <tr>
-                                                                                                                    <th class="col-md-2">No</th>
-                                                                                                                    <th class="col-md-8">Name</th>
-                                                                                                                    
-                                                                                                                </tr>
-                                                                                                            </thead>
-                                                                                                            <tbody>
-                                                                                                                <tr>
-                                                                                                                    <td>1</td>
-                                                                                                                    <td>Foram Aghara</td>
-                                                                                                                    
-                                                                                                                </tr>
-                                                                                                                <tr>
-                                                                                                                    <td>2</td>
-                                                                                                                    <td>Jinal Jadeja</td>
-                                                                                                                    
-                                                                                                                </tr>
-                                                                                                                <tr>
-                                                                                                                    <td>3</td>
-                                                                                                                    <td>Bansi Patel</td>
-                                                                                                                    
-                                                                                                                </tr>
-                                                                                                                <tr>
-                                                                                                                    <td>4</td>
-                                                                                                                    <td>John Doe</td>
-                                                                                                                    <td></td>
-                                                                                                                </tr>
-                                                                                                            </tbody>
-                                                                                                    </table>
-                                                                                                </div>
-                                            
-                                                                                              </div>
-                                                                                         
-                                                                               </div>
-                                                                                    
-                                                                                      
-                                                                              </div>
-                                                                              
-                                                        </div> 
-                                                    <div class="col-3">
-                                                                <div class="card">
-                                                                      <div class="card-body">
-                                                                        <h4 class="card-title">Room Id 7<span><i class="pull-right mdi mdi-marker" data-toggle="tooltip" title="Edit Room ID"></i></span></h4>                         
-                                                                                  
-                                                                                  <div class="form-group row">
-                                                                                        <div class="table-responsive">
-                                                                                                <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
-                                                                                                    <thead>
-                                                                                                        <tr>
-                                                                                                            <th class="col-md-2">No</th>
-                                                                                                            <th class="col-md-8">Name</th>
-                                                                                                            
-                                                                                                        </tr>
-                                                                                                    </thead>
-                                                                                                    <tbody>
-                                                                                                        <tr>
-                                                                                                            <td>1</td>
-                                                                                                            <td>Foram Aghara</td>
-                                                                                                            
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td>2</td>
-                                                                                                            <td>Jinal Jadeja</td>
-                                                                                                            
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td>3</td>
-                                                                                                            <td>Bansi Patel</td>
-                                                                                                            
-                                                                                                        </tr>
-                                                                                                        <tr>
-                                                                                                            <td>4</td>
-                                                                                                            <td>John Doe</td>
-                                                                                                            <td></td>
-                                                                                                        </tr>
-                                                                                                    </tbody>
-                                                                                            </table>
-                                                                                        </div>
-                                    
-                                                                                      </div>
-                                                                                 
-                                                                       </div>
-                                                                            
-                                                                              
-                                                                      </div>
-                                                                      
-                                                        </div>
-                                                    <div class="col-3">
-                                                                        <div class="card">
-                                                                              <div class="card-body">
-                                                                                <h4 class="card-title">Room Id 8<span><i class="pull-right mdi mdi-marker" data-toggle="tooltip" title="Edit Room ID"></i></span></h4>                          
-                                                                                          
-                                                                                          <div class="form-group row">
-                                                                                                <div class="table-responsive">
-                                                                                                        <table id="demo-foo-addrow" class="table md-12 table-hover no-wrap " data-page-size="10">
-                                                                                                            <thead>
-                                                                                                                <tr>
-                                                                                                                    <th class="col-md-2">No</th>
-                                                                                                                    <th class="col-md-8">Name</th>
-                                                                                                                    
-                                                                                                                </tr>
-                                                                                                            </thead>
-                                                                                                            <tbody>
-                                                                                                                <tr>
-                                                                                                                    <td>1</td>
-                                                                                                                    <td>Foram Aghara</td>
-                                                                                                                    
-                                                                                                                </tr>
-                                                                                                                <tr>
-                                                                                                                    <td>2</td>
-                                                                                                                    <td>Jinal Jadeja</td>
-                                                                                                                    
-                                                                                                                </tr>
-                                                                                                                <tr>
-                                                                                                                    <td>3</td>
-                                                                                                                    <td>Bansi Patel</td>
-                                                                                                                    
-                                                                                                                </tr>
-                                                                                                                <tr>
-                                                                                                                    <td>4</td>
-                                                                                                                    <td>John Doe</td>
-                                                                                                                    <td></td>
-                                                                                                                </tr>
-                                                                                                            </tbody>
-                                                                                                    </table>
-                                                                                                </div>
-                                            
-                                                                                              </div>
-                                                                                         
-                                                                               </div>
-                                                                                    
-                                                                                      
-                                                                              </div>
-                                                                              
-                                                        </div>                          
-                                                    <!-- Column -->
-                                                 </div>   
+                                                    </div>                                                            
+                                                </div>
+                                                <?php
+                                                    endforeach;
+                                                ?>
+                                            </div>   
                                     </div>                     
                             </div>
                             
@@ -778,30 +498,30 @@ else {
     </div>
                 
  <div class="modal fade" id="editRoomModal" tabindex="-1" role="dialog" aria-hidden="true">
-                                                        <div class="modal-dialog" role="document">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h4 class="modal-title">Edit Room ID</h4>
-                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <form>
-                                                                        <div class="form-group">
-                                                                            <label>ID</label>
-                                                                            <input type="text" class="form-control" placeholder="Enter ID">
-                                                                            
-                                                                    </form>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                                                    <button type="button" class="btn btn-success" data-dismiss="modal">Submit</button>
-                                                                </div>
-                                                            </div>
-                                                            <!-- /.modal-content -->
-                                                        </div>
-                                                        <!-- /.modal-dialog -->
-                                                    </div>
-                                                </div>   
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Edit Room ID</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span> </button>
+                </div>
+                <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" id="old_room_preference" name="old_room_preference" value="7000" />
+                        <div class="form-group">
+                            <label>ID</label>
+                            <input type="text" name="room_preference" id="room_preference" class="form-control" placeholder="Enter ID">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" name="edit" class="btn btn-success">Submit</button>
+                </div>
+                </form>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+</div>   
 				
                 <!-- ============================================================== -->
                 <!-- End PAge Content -->
@@ -852,13 +572,15 @@ else {
     <script src="assets/plugins/html5-editor/wysihtml5-0.3.0.js"></script>
     <script src="assets/plugins/html5-editor/bootstrap-wysihtml5.js"></script>
     <script>
-            $(document).ready(function() {
-        
-                $('.textarea_editor').wysihtml5();
-        
-        
-            });
-            </script>
+        $(document).ready(function() {
+            $('.textarea_editor').wysihtml5();        
+
+        });
+        function edit(room_preference) {
+            $('#old_room_preference').val(room_preference)
+            $('#room_preference').val(room_preference)
+        }
+    </script>
     <!-- ============================================================== -->
     <!-- Style switcher -->
     <!-- ============================================================== -->

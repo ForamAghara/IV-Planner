@@ -3,10 +3,90 @@ include('connect-db.php');
 session_start();
 if(isset($_SESSION['username']) && isset($_SESSION['user']) ){
     if($_SESSION['user']=="faculty"){
-$sel = "SELECT * from `faculty` where `f_id` = ".$_SESSION['username']."";
-$result = mysqli_query($conn,$sel);
-$userdata=mysqli_fetch_array($result);
-}
+        $sel = "SELECT * from `faculty` where `f_id` = ".$_SESSION['username']."";
+        $result = mysqli_query($conn,$sel);
+        $userdata=mysqli_fetch_array($result);
+        
+        $sel = "SELECT visit_id from `approvals` where `f_id` = ".$userdata['f_id'];
+        $result = mysqli_query($conn,$sel);
+        $visit_id=mysqli_fetch_assoc($result)['visit_id'];
+
+        if(isset($_POST['save'])) {  
+            $sel = "INSERT INTO faculty_payment (amount, date, coordinator_id, visit_id, f_id) VALUES ('" . $_POST['amount'] . "', '". $_POST['date'] ."', '" . $_POST['coordinator_id'] . "', '" . $visit_id . "', '" . $userdata['f_id'] . "')";
+            mysqli_query($conn,$sel);
+        }
+
+        if(isset($_POST['verification'])) {  
+            $sel = "UPDATE student_payment SET verified = 1 where student_id = " . $_POST['student_id'];
+            mysqli_query($conn,$sel);
+        }
+
+        $sel = "SELECT coordinator_id, name from `coordinator` where `visit_id` = ".$visit_id;
+        $result = mysqli_query($conn,$sel);
+        $coordinators=mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+        $sel = "SELECT count(student_id) student from `student` where f_id = " . $userdata['f_id'];
+        $result = mysqli_query($conn,$sel);
+        $registered_students=mysqli_fetch_assoc($result)['student'];
+
+        $sel = "SELECT sp.student_id, st.name, st.trip_cancel, st.enroll_no from `student_payment` as sp join `student` as st where sp.student_id = st.student_id and verified = 1  and sp.visit_id = $visit_id and sp.f_id = " . $userdata['f_id'];
+        $result = mysqli_query($conn,$sel);
+        $verified_students=mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+        $sel = "SELECT sp.student_id, st.name, st.trip_cancel, st.enroll_no, st.email_id, sp.amount, sp.date, co.name as coordinator_name from `student_payment` as sp join `student` as st, coordinator as co where sp.student_id = st.student_id and co.coordinator_id = sp.coordinator_id and verified = 0  and sp.visit_id = $visit_id and sp.f_id = " . $userdata['f_id'];
+        $result = mysqli_query($conn,$sel);
+        $pending_students=mysqli_fetch_all($result, MYSQLI_ASSOC);
+
+        $sel = "SELECT sum(amount) amount from `student_payment` where visit_id = $visit_id and f_id = " . $userdata['f_id'];
+        $result = mysqli_query($conn,$sel);
+        $amount=mysqli_fetch_assoc($result)['amount'];
+        if(isset($_POST['csv'])) {
+            $filename = 'Payment Insights.csv';
+            $fp = @fopen( 'php://output', 'w' );
+            header('Content-type: application/csv');
+            header('Content-Disposition: attachment; filename='.$filename);            
+            fputcsv($fp, array(
+                'Registered Students',
+                $registered_students
+            ));
+            fputcsv($fp, array(
+                'Students Verified',
+                count($verified_students)
+            ));
+            fputcsv($fp, array(
+                'Students Pending',
+                count($pending_students)
+            ));
+            fputcsv($fp, array(
+                'Total Amount Collected',
+                $amount
+            ));
+            fputcsv($fp, array(
+                'Verified Students'
+            ));
+            fputcsv($fp, array(
+                'Student Name',
+                'Enrollment No.',
+                'Trip Cancle'
+            ));
+            foreach($verified_students as $student) :                                                                            
+                fputcsv($fp, $student);                    
+            endforeach;
+            fputcsv($fp, array(
+                'Pending Students'
+            ));
+            fputcsv($fp, array(
+                'Student Name',
+                'Enrollment No.',
+                'Trip Cancle'
+            ));
+            foreach($pending_students as $student) :                                                                            
+                fputcsv($fp, $student);                    
+            endforeach;
+            fclose($fp);
+            exit;
+        }
+    }
 else{
     if($_SESSION['user']=="admin"){
         header("Location: admin.php");
@@ -266,8 +346,7 @@ else {
                                        <li> <a href="facultyblacklist.php" ><i class="mdi mdi-block-helper"></i><span class="hide-menu" >Blacklist</span></a>
                                        </li>
                                        
-                                       <li> <a class="has-arrow waves-effect waves-dark" aria-expanded="false" href="#" ><i class="mdi mdi-credit-card"></i>
-                                        <span  class="hide-menu">Payment</span></a>
+                                       <li> <a class="has-arrow waves-effect waves-dark" aria-expanded="false" href="#" ><i class="mdi mdi-credit-card"></i><span  class="hide-menu">Payment</span></a>
                                         <ul aria-expanded="false" class="collapse">
                                             <li><a  href="facultypayment.php#report">Payment Report</a></li>
                                             <li><a href="facultypayment.php#entry">Payment Entry Coordinator</a></li>
@@ -275,7 +354,7 @@ else {
                                         </ul>
                                         </li>
                                        
-                                        <li> <a  href="facultybonafide.php" ><i class="mdi mdi-file-document"></i><span class="hide-menu">      Bonafide</span></a>
+                                          <li> <a  href="facultybonafide.php" ><i class="mdi mdi-file-document"></i><span class="hide-menu">Bonafide</span></a>
                                        </li>
                                        <li> <a  href="facultyroom.php" ><i class="mdi mdi-home"></i><span class="hide-menu">Room Allocation</span></a>
                                        </li>  
@@ -351,7 +430,9 @@ else {
                                                         
                                                     </div>
                                                     <div class="col-md-2">
-                                                              <a href="" class=" pull-right btn btn-success"><i class="mdi mdi-download"></i><span>Download Report</span></a>
+                                                        <form method="post">
+                                                        <button type="submit" name="csv" class=" pull-right btn btn-success"><i class="mdi mdi-download"></i><span>Download Report</span></button>
+                                                        </form>
                                                     </div>
                                             </div>
                                             <div class="row m-t-40">
@@ -359,7 +440,7 @@ else {
                                                 <div class="col-md-6 col-lg-3 col-xlg-3">
                                                     <div class="card card-inverse card-info">
                                                         <div class="box bg-info text-center">
-                                                            <h1 class="font-light text-white">50</h1>
+                                                            <h1 class="font-light text-white"><?=$registered_students?></h1>
                                                             <h6 class="text-white">Registered Students</h6>
                                                         </div>
                                                     </div>
@@ -368,7 +449,7 @@ else {
                                                 <div class="col-md-6 col-lg-3 col-xlg-3">
                                                     <div class="card card-success card-inverse">
                                                         <div class="box text-center">
-                                                            <h1 class="font-light text-white">30</h1>
+                                                            <h1 class="font-light text-white"><?=count($verified_students)?></h1>
                                                             <h6 class="text-white">Students Verified</h6>
                                                         </div>
                                                     </div>
@@ -377,7 +458,7 @@ else {
                                                 <div class="col-md-6 col-lg-3 col-xlg-3">
                                                     <div class="card card-inverse card-danger">
                                                         <div class="box text-center">
-                                                            <h1 class="font-light text-white">20</h1>
+                                                            <h1 class="font-light text-white"><?=count($pending_students)?></h1>
                                                             <h6 class="text-white">Students Pending</h6>
                                                         </div>
                                                     </div>
@@ -386,7 +467,7 @@ else {
                                                 <div class="col-md-6 col-lg-3 col-xlg-3">
                                                     <div class="card card-inverse card-dark">
                                                         <div class="box text-center">
-                                                            <h1 class="font-light text-white">25000</h1>
+                                                            <h1 class="font-light text-white"><?=$amount?$amount:0?></h1>
                                                             <h6 class="text-white">Total Amount Collected</h6>
                                                         </div>
                                                     </div>
@@ -404,58 +485,23 @@ else {
                                                                                 <tr>
                                                                                     <th>Student Name</th>
                                                                                     <th>Enrollment No.</th>
-                                                                                    <th>Submitted</th>
+                                                                                    <th>Trip Cancle</th>
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>
+                                                                                <?php
+                                                                                    foreach($verified_students as $student) :                                                                            
+                                                                                ?>
                                                                                 <tr>
-                                                                                    <td>
-                                                                                     John Doe
-                                                                                    </td>
-                                                                                    <td>150510070252</td>
-                                                                                    <td>
-                                                                                        <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify"><i class="ti-check" aria-hidden="true"></i></button>
-                                                                                    </td>
+                                                                                    <td><?=$student['name']?></td>
+                                                                                    <td><?=$student['enroll_no']?></td>
+                                                                                    <td><?=$student['trip_cancel'] ? 'Requested for cancel':'Not Cancelled' ?></td>
                                                                                 </tr>
-                                                                                <tr>
-                                                                                    <td>
-                                                                                     John Doe
-                                                                                    </td>
-                                                                                    <td>150510070252</td>
-                                                                                    <td>
-                                                                                        <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify"><i class="ti-check" aria-hidden="true"></i></button>
-                                                                                    </td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <td>
-                                                                                     John Doe
-                                                                                    </td>
-                                                                                    <td>150510070252</td>
-                                                                                    <td>
-                                                                                        <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify"><i class="ti-check" aria-hidden="true"></i></button>
-                                                                                    </td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <td>
-                                                                                     John Doe
-                                                                                    </td>
-                                                                                    <td>150510070252</td>
-                                                                                    <td>
-                                                                                        <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify"><i class="ti-check" aria-hidden="true"></i></button>
-                                                                                    </td>
-                                                                                </tr>
-                                                                                <tr>
-                                                                                    <td>
-                                                                                     John Doe
-                                                                                    </td>
-                                                                                    <td>150510070252</td>
-                                                                                    <td>
-                                                                                        <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify"><i class="ti-check" aria-hidden="true"></i></button>
-                                                                                    </td>
-                                                                                </tr>
-                                                                                
+                                                                                <?php
+                                                                                    endforeach;
+                                                                                ?>
                                                                             </tbody>
-                                                                                                                        </table>
+                                                                        </table>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -475,45 +521,23 @@ else {
                                                                                 <tr>
                                                                                     <th>Student Name</th>
                                                                                     <th>Enrollment No.</th>
+                                                                                    <th>Trip Cancle</th>
                                                                                     <th>Action</th>
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>
-                                                                                    <tr>
-                                                                                            <td>
-                                                                                             Mark Twain
-                                                                                            </td>
-                                                                                            <td>150510070252</td>
-                                                                                            <td>
-                                                                                                <a href="" class="btn btn-warning">Notify</a>                                                    </td>
-                                                                                        </tr>
-                                                                                        <tr>
-                                                                                                <td>
-                                                                                                 Mark Twain
-                                                                                                </td>
-                                                                                                <td>150510070252</td>
-                                                                                                <td>
-                                                                                                    <a href="" class="btn btn-warning">Notify</a>                                                    </td>
-                                                                                            </tr>
-                                                                                            <tr>
-                                                                                                    <td>
-                                                                                                     Mark Twain
-                                                                                                    </td>
-                                                                                                    <td>150510070252</td>
-                                                                                                    <td>
-                                                                                                        <a href="" class="btn btn-warning">Notify</a>                                                    </td>
-                                                                                                </tr>
-                                                                                                
+                                                                                <?php
+                                                                                    foreach($pending_students as $student) :                                                                            
+                                                                                ?>
                                                                                 <tr>
-                                                                                    <td>
-                                                                                     Mark Twain
-                                                                                    </td>
-                                                                                    <td>150510070252</td>
-                                                                                    <td>
-                                                                                        <a href="" class="btn btn-warning">Notify</a>                                                    </td>
+                                                                                    <td><?=$student['name']?></td>
+                                                                                    <td><?=$student['enroll_no']?></td>
+                                                                                    <td><?=$student['trip_cancel'] ? 'Requested for cancel':'Not Cancelled' ?></td>
+                                                                                    <td><a href="" class="btn btn-warning">Notify</a></td>
                                                                                 </tr>
-                                                                              
-                                                                                
+                                                                                <?php
+                                                                                    endforeach;
+                                                                                ?>
                                                                             </tbody>
                                                                                                                         </table>
                                                                     </div>
@@ -531,6 +555,7 @@ else {
             
                 
 
+            <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">                
                 <div class="row"  >
                     <div class="col-12">
                             <div class="card">
@@ -542,29 +567,33 @@ else {
                                     <div class="form-group row">
                                         <label for="example-text-input" class="col-md-4 col-form-label">Select Coordinator</label>
                                         <div class="col-md-8">
-                                                <select class="selectpicker m-b-20 m-r-10" data-style="btn-info btn-outline-info">
-                                                        <option data-tokens="" selected disabled>Coordinators</option>
-                                                        <option data-tokens="">Harry Makadia</option>
-                                                        <option data-tokens="">Mohil Patel</option>
-                                                        <option data-tokens="">Bhavin Patel</option>
-                                                    </select>            
+                                                <select name="coordinator_id" class="selectpicker m-b-20 m-r-10" data-style="btn-info btn-outline-info">
+                                                    <option data-tokens="" selected disabled>Coordinators</option>
+                                                    <?php
+                                                        foreach($coordinators as $coordinator) :
+                                                    ?>
+                                                        <option value="<?=$coordinator['coordinator_id']?>"><?=$coordinator['name']?></option>
+                                                    <?php
+                                                        endforeach;
+                                                    ?>
+                                                </select>
                                         </div>
                                     </div>
                                     <div class="form-group row">
                                             <label for="example-text-input" class="col-md-4 col-form-label">Enter Amount</label>
                                             <div class="col-md-8">
-                                                    <input class="form-control" type="number" value="" id="amount" placeholder="AMOUNT..." >
+                                                        <input class="form-control" type="number" value="" name="amount" id="amount" placeholder="AMOUNT..." >
                                             </div>
                                         </div>
                                     <div class="form-group row">
                                             <label for="example-text-input" class="col-md-4 col-form-label">Select Date</label>
                                             <div class="col-md-8">
-                                                    <input class="form-control" type="date" value="" id="date" placeholder="DATE...">
+                                                        <input class="form-control" type="date" value="" name="date" id="date" placeholder="DATE...">
                                             </div>
                                         </div>
                                         <div class="form-group row">
                                                 <div class="col-md-4">
-                                        <a href="" class="btn btn-success">Save</a>
+                                            <button type="submit" name="save" class="btn btn-success">Save</button>
                                     </div>
                                     </div>   
                                     </div>
@@ -572,10 +601,11 @@ else {
                             </div>
                             
                         </div>
-            
+				</div>
+            </form>
                        
 
-                <div class="row" >
+                <div>
                         <div class="col-12">
                                 <div class="card">
                                     <div class="card-body">
@@ -626,78 +656,35 @@ else {
                                                         <th>Amount</th>
                                                         <th>Submitted to</th>
                                                         <th>Date</th>
+                                                        <th>Trip Cancle</th>
                                                         <th>Action</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
+                                                    <?php
+                                                        $count = 1;
+                                                        foreach($pending_students as $student) :                                                                            
+                                                    ?>
                                                     <tr>
-                                                        <td>1</td>
+                                                        <td><?=$count++?></td>
+                                                        <td><?=$student['name']?></td>
+                                                        <td><?=$student['email_id']?></td>
+                                                        <td><?=$student['amount']?></td>
+                                                        <td><?=$student['coordinator_name']?></td>
+                                                        <td><?=$student['date']?></td>
+                                                        <td><?=$student['trip_cancel'] ? 'Requested for cancel':'Not Cancelled' ?></td>
                                                         <td>
-                                                            <a href="javascript:void(0)"><img src="assets/images/users/1.jpg" alt="user" class="img-circle" /> Genelia Deshmukh</a>
-                                                        </td>
-                                                        <td>genelia@gmail.com</td>
-                                                        <td>4000</td>
-                                                        <td>Foram Patel</td>
-                                                        <td>14-10-2017</td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify"><i class="ti-check" aria-hidden="true"></i></button>
+                                                            <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+                                                                <input type="hidden" name="student_id" value="<?=$student['student_id']?>" />
+                                                                <button type="submit" name="verification" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify">
+                                                                    <i class="ti-check" aria-hidden="true"></i>
+                                                                </button>
+                                                            </form>
                                                         </td>
                                                     </tr>
-                                                    <tr>
-                                                        <td>2</td>
-                                                        <td>
-                                                                <a href="javascript:void(0)"><img src="assets/images/users/3.jpg" alt="user" class="img-circle" /> Govinda Mauli</a>
-                                                        </td>
-                                                        <td>ritesh@gmail.com</td>
-                                                        <td>4500</td>
-                                                    
-                                                        <td>Mohil Patel</td>
-                                                        <td>13-10-2017</td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify"><i class="ti-check" aria-hidden="true"></i></button>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>3</td>
-                                                        <td>
-                                                            <a href="javascript:void(0)"><img src="assets/images/users/3.jpg" alt="user" class="img-circle" /> Govinda Mauli</a>
-                                                        </td>
-                                                        <td>govinda@gmail.com</td>
-                                                        <td>2000</td>
-                                                        
-                                                        <td>Bhavin Patel</td>
-                                                        <td>13-10-2017</td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify"><i class="ti-check" aria-hidden="true"></i></button>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td>4</td>
-                                                        <td>
-                                                            <a href="javascript:void(0)"><img src="assets/images/users/4.jpg" alt="user" class="img-circle" /> Raja Mauli</a>
-                                                        </td>
-                                                        <td>bahubali@gmail.com</td>
-                                                        <td>4500</td>
-                                                        
-                                                        <td>Foram Patel</td>
-                                                        <td>12-10-2017</td>
-                                                        <td><button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify"><i class="ti-check" aria-hidden="true"></i></button>
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                            <td>5</td>
-                                                            <td>
-                                                                <a href="javascript:void(0)"><img src="assets/images/users/3.jpg" alt="user" class="img-circle" /> Govinda Mauli</a>
-                                                            </td>
-                                                            <td>govinda@gmail.com</td>
-                                                            <td>4000</td>
-                                                            
-                                                            <td>Mohil Patel</td>
-                                                            <td>13-10-2017</td>
-                                                            <td>
-                                                                <button type="button" class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn" data-toggle="tooltip" data-original-title="Verify"><i class="ti-check" aria-hidden="true"></i></button>
-                                                            </td>
-                                                        </tr>
+                                                    <?php
+                                                        endforeach;
+                                                    ?>
                                                 </tbody>
                                                                                             </table>
                                         </div>

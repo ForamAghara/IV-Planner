@@ -3,10 +3,19 @@ include('connect-db.php');
 session_start();
 if(isset($_SESSION['username']) && isset($_SESSION['user'])){
     if($_SESSION['user']=="student"){
-$sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username']."";
-$result = mysqli_query($conn,$sel);
-$userdata=mysqli_fetch_array($result);
-}
+        $sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username'];
+        $result = mysqli_query($conn,$sel);
+        $userdata=mysqli_fetch_array($result);
+
+        if(isset($_POST['save'])) {
+            $sel = "INSERT INTO student_payment (amount, date, coordinator_id, visit_id, student_id, f_id) VALUES ('" . $_POST['amount'] . "', '". $_POST['date'] ."', '" . $_POST['coordinator_id'] . "', '" . $userdata['visit_id'] . "', '" . $userdata['student_id'] . "', '" . $userdata['f_id'] . "')";
+            mysqli_query($conn,$sel);
+        }
+
+        $sel = "SELECT coordinator_id, name from `coordinator` where `visit_id` = ".$userdata['visit_id'];
+        $result = mysqli_query($conn,$sel);
+        $coordinators=mysqli_fetch_all($result, MYSQLI_ASSOC);
+    }
 else{
     if($_SESSION['user']=="faculty"){
         header("Location: faculty.php");
@@ -307,7 +316,7 @@ else {
                 <!-- Start Page Content -->
                 <!-- ============================================================== -->
                 <!-- Row -->
-                
+                <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">                
                 <!-- Row -->
                 <div class="row">
                     <!-- Column -->
@@ -319,29 +328,33 @@ else {
                                     <div class="form-group row">
                                             <label for="example-text-input" class="col-md-4 col-form-label">Select Coordinator</label>
                                             <div class="col-md-8">
-                                                    <select class="selectpicker m-b-20 m-r-10" data-style="btn-info btn-outline-info">
-                                                            <option data-tokens="" selected disabled>Coordinators</option>
-                                                            <option data-tokens="">Harry Makadia</option>
-                                                            <option data-tokens="">Mohil Patel</option>
-                                                            <option data-tokens="">Bhavin Patel</option>
-                                                        </select>            
+                                                <select name="coordinator_id" class="selectpicker m-b-20 m-r-10" data-style="btn-info btn-outline-info">
+                                                    <option data-tokens="" selected disabled>Coordinators</option>
+                                                    <?php
+                                                        foreach($coordinators as $coordinator) :
+                                                    ?>
+                                                        <option value="<?=$coordinator['coordinator_id']?>"><?=$coordinator['name']?></option>
+                                                    <?php
+                                                        endforeach;
+                                                    ?>
+                                                </select>
                                             </div>
                                         </div>
                                         <div class="form-group row">
                                                 <label for="example-text-input" class="col-md-4 col-form-label">Enter Amount</label>
                                                 <div class="col-md-8">
-                                                        <input class="form-control" type="number" value="" id="amount" placeholder="AMOUNT..." >
+                                                        <input class="form-control" type="number" value="" name="amount" id="amount" placeholder="AMOUNT..." >
                                                 </div>
                                             </div>
                                         <div class="form-group row">
                                                 <label for="example-text-input" class="col-md-4 col-form-label">Select Date</label>
                                                 <div class="col-md-8">
-                                                        <input class="form-control" type="date" value="" id="date" placeholder="DATE...">
+                                                        <input class="form-control" type="date" value="" name="date" id="date" placeholder="DATE...">
                                                 </div>
                                             </div>
                                             <div class="form-group row">
                                                     <div class="col-md-4">
-                                            <a href="" class="btn btn-success">Save</a>
+                                            <button type="submit" name="save" class="btn btn-success">Save</button>
                                         </div>
                                         </div>    
                              </div>
@@ -354,7 +367,7 @@ else {
                     <!-- Column -->
                  </div>
                 <!-- Row -->
-                
+                </form>
 			</div>
     </div>
                 

@@ -49,7 +49,31 @@ else {
     <link href="assets/plugins/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <!-- morris CSS -->
     <link href="assets/plugins/morrisjs/morris.css" rel="stylesheet">
-    
+    <style>
+            h4 span { 
+             margin-top: -100px;        /* Size of fixed header */
+              padding-bottom: 100px; 
+               display: block; 
+             }
+
+             .hidep {
+
+  position: relative;
+  opacity: 100;
+  height: 6em; exactly three lines
+}
+.hidep:after {
+  content: "";
+  text-align: right;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 100%;
+  height: 3em;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 100%);
+}
+
+            </style>
      <!-- chartist CSS -->
 
      <link href="assets/plugins/css-chart/css-chart.css" rel="stylesheet">
@@ -311,23 +335,102 @@ else {
                 <!-- Start Page Content -->
                 <!-- ============================================================== -->
                 <!-- Row -->
-                
                 <div class="row">
                     <!-- Column -->
-                    <div class="col-12">
-                            <div class="card">
-                                  <div class="card-body">
-                                    <img src="assets/images/insurance.jpg" alt="">
-                                        <a href="" class="btn btn-success">Download</a>                            
+
+                        <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            
+
+                            <!-- Column -->
+                            <div class="row">
+                            <?php
+                            $sel7 = "SELECT * from `agent` where f_id= ".$userdata['f_id']."";
+                            $re7 = $conn->query($sel7);
+                            $a7=mysqli_fetch_array($re7);
+
+                            $sel8 = "SELECT * from `insurance` where a_id= ".$a7['a_id']."";
+                            $result = $conn->query($sel8);
+                            $data=mysqli_fetch_array($result);
+                            
+                            
+                            ?>
+                            <div class="col-lg-12">
+                                <div class="card">
+                                   
+                                <!-- card -->
+
+                                <div class="card card-inverse card-info" style="margin-bottom:0px;">
+                                    <div class="card-body">
+                                        <div class="d-flex">
+                                            <div>
+                                                <h3 class="card-title"><?php echo $data['company_name'];?></h3>
+                                                <h6 class="card-subtitle"></h6> </div>
+                                        </div>
+                                      
+                                            <div class="col-12 p-t-10 p-b-20 align-self-center">
+                                                <h4 class="font-light text-white"><?php echo $data['insurance_name'];?> -> Rs <?php echo $data['amount'];?></h4>
+                                               
+                                            </div>
+                                      
                                     </div>
-                            </div>
+                                   
+                                </div>
+
+                                
+
+                                <div class="card-body">
+                                    
+                                        <p style="height:150px; overflow: hidden; text-align:justify" class="m-b-0 m-t-10 hidep"><?php echo $data['description'];?></p>
+                                </div>
+                               
+
+                                        
+                                        <div class="modal-body table-responsive" style="margin-top:-30px;">
+                                        <table >
+                                        <tr>
+                                        <td class="iid" style="display:none;"><?php echo $data['description'];?></td>
+                                        <td><button type="button" data-toggle="modal" class="btn btn-success btn-rounded waves-effect waves-light m-t-20 edit editbutton" 
+                                        data-target="#myModal">Read More</button></td>
+                                        <td width="30px"></td>
+                                        <td style="margin-left:10px;"> <a class="pull-right btn btn-danger btn-rounded waves-effect waves-light m-t-20" 
+                                        href="<?php echo $data['docs'];?> " id="doclink" target="_blank">View Doc</a></td>
+                                        </tr>
+                                        </table>
+                                        
+                                       
+                                        
+                                        </div>
+                                      </div>
+                                 
                         </div>
-                    <!-- Column -->
-                 </div>
-                  </div>
-                <!-- Row -->
-                
-			</div>
+                        
+                            </div>
+                    </div>
+             </div>
+
+        </div>
+        <div class="modal fade" id="myModal" role="dialog">
+            
+             <div class="modal-dialog">
+     
+                                     <!-- Modal contente -->
+                <div class="modal-content">
+                   <div class="modal-header">
+                    <h4 class="modal-title">Description</h4>
+                    <button type="button" class="close" data-dismiss="modal" >&times;</button>
+                   </div>
+                   <div class="modal-body slimScrollDiv" style="height:350px; overflow: hidden; overflow-y: auto">
+                    <p id="demo" style="text-align:justify" >
+                    </p>
+                    </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                     </div>
+                   </div>
+               </div>
+        </div>
     </div>
                 
                         <!-- Column -->
@@ -355,6 +458,23 @@ else {
     <!-- All Jquery -->
     <!-- ============================================================== -->
     <script src="assets/plugins/jquery/jquery.min.js"></script>
+    <script type="text/javascript">
+ 
+ $(document).ready(function(){
+     $('.editbutton').click(function () {
+    
+    
+        var cid=$(this).closest('tr').children('td.iid').text();
+        document.getElementById("demo").textContent = cid;
+
+
+
+
+     });
+
+ });
+
+</script>
     <!-- Bootstrap tether Core JavaScript -->
     <script src="assets/plugins/bootstrap/js/popper.min.js"></script>
     <script src="assets/plugins/bootstrap/js/bootstrap.min.js"></script>

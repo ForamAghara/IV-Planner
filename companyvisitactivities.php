@@ -3,9 +3,14 @@ include('connect-db.php');
 session_start();
 if(isset($_SESSION['username']) && isset($_SESSION['user']) ){
     if($_SESSION['user']=="company"){
-$sel = "SELECT * from `company_person` where `c_id` = ".$_SESSION['username']."";
-$result = mysqli_query($conn,$sel);
-$userdata=mysqli_fetch_array($result);
+        $sel = "SELECT * from `company_person` where `c_id` = ".$_SESSION['username']."";
+        $result = mysqli_query($conn,$sel);
+        $userdata=mysqli_fetch_array($result);
+        if(isset($_POST['save']) && isset($_POST['visit_activities']) && $_POST['visit_activities'] != '') {
+            $sel = "UPDATE company_person SET visit_activities = '" . $_POST['visit_activities'] . "' WHERE c_id = " . $userdata['c_id'];
+            mysqli_query($conn,$sel);
+            $userdata['visit_activities'] = $_POST['visit_activities'];
+        }    
 }
 else{
     if($_SESSION['user']=="faculty"){
@@ -298,12 +303,12 @@ else {
                             <div class="card">
                                   <div class="card-body">
                                         <h3 class="card-title">Visit Activities</h3>
-                                        <form method="post">
-                                                <div class="form-group">
-                                                    <textarea class="textarea_editor form-control" rows="15" placeholder="Enter feedback and share link of report ..."></textarea>
-                                                </div>
-                                                <a class="btn btn-success" href="" >Save</a>
-                                            </form>
+                                        <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+                                            <div class="form-group">
+                                                <textarea class="textarea_editor form-control" rows="15" placeholder="Enter feedback and share link of report ..." name="visit_activities"><?=$userdata['visit_activities']?></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-success" name="save">Save</button>
+                                        </form>
                                     </div>                     
                             </div>
                             

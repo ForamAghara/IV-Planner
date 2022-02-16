@@ -198,89 +198,91 @@ else {
                        <!-- Left Sidebar - style you can find in sidebar.scss  -->
                        <!-- ============================================================== -->
                        <aside class="left-sidebar">
-                           <!-- Sidebar scroll-->
-                           <div class="scroll-sidebar">
-                               <!-- User profile -->
-                               <div class="user-profile">
-                                   <!-- User profile image -->
-                                   <div class="profile-img"> <img src="assets/images/users/profile.png" alt="user" />
-                                       <!-- this is blinking heartbit-->
-                                       <div class="notify setpos"> <span class="heartbit"></span> <span class="point"></span> </div>
-                                   </div>
-                                   <!-- User profile text-->
-                                   <div class="profile-text">
-                                   <h5><?php echo $userdata['name']; ?></h5>
-                                       <a href="#" class="dropdown-toggle u-dropdown" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true"><i class="mdi mdi-settings"></i></a>
+            <!-- Sidebar scroll-->
+            <div class="scroll-sidebar">
+                <!-- User profile -->
+                <div class="user-profile">
+                    <!-- User profile image -->
+                    <div class="profile-img"> <img src="assets/images/users/profile.png" alt="user" />
+                        <!-- this is blinking heartbit-->
+                        <div class="notify setpos"> <span class="heartbit"></span> <span class="point"></span> </div>
+                    </div>
+                    <!-- User profile text-->
+                    <div class="profile-text">
+                    <h5><?php echo $userdata['name']; ?></h5>
+                        <a href="#" class="dropdown-toggle u-dropdown" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true"><i class="mdi mdi-settings"></i></a>
                                         
-                                       <div class="dropdown-menu animated flipInY">
-                                        <!-- text--> 
-                                        <a href="facultyprofile.php" class="dropdown-item"><i class="ti-user"></i> My Profile</a>
-                                        <!-- text-->  
-                                
-                                        <!-- text--> 
-                                        <div class="dropdown-divider"></div>
-                                        <!-- text-->  
-                                        <a href="facultysetting.php" class="dropdown-item"><i class="ti-settings"></i> Account Setting</a>
-                                        <!-- text--> 
-                                        <div class="dropdown-divider"></div>
-                                        <!-- text-->  
-                                        <a href="logout.php" class="dropdown-item"><i class="fa fa-power-off"></i> Logout</a>
-                                   </div>
-                                     </div>
-                                      
-                               <!-- End User profile text-->
-                               <!-- Sidebar navigation-->
-                               
-                                       
-                               <nav class="sidebar-nav">
-                                   <ul id="sidebarnav">
-                                       <li class="nav-devider"></li>
-                                     
-                                     
-                                       <li> <a  href="faculty.php" ><i class="mdi mdi-gauge"></i><span class="hide-menu">Dashboard</span></a>
-                                       </li>
-               
-                                       <li> <a href="facultycompanyapproval.php" ><i class="mdi mdi-checkbox-marked-circle-outline"></i><span class="hide-menu">Company Approvals</span></a>
-                                       </li>
-                                      
-                                     
-                                       <li> <a href="facultycreatetrip.php" ><i class="mdi mdi-voice"></i><span class="hide-menu">Create Trip</span></a>
-                                       </li>
-                                       
-                                       <li> <a href="facultyinvoice.php" ><i class="mdi mdi-cursor-text"></i><span class="hide-menu" >Invoice Page</span></a>
-                                         </li>
-                                       
-                                       <li> <a href="facultyundertaking.php" ><i class="mdi mdi-clipboard-text"></i><span class="hide-menu" >Undertaking</span></a>
-                                       </li>
+                        <div class="dropdown-menu animated flipInY">
+                         <!-- text--> 
+                         <a href="facultyprofile.php" class="dropdown-item"><i class="ti-user"></i> My Profile</a>
+                         <!-- text-->  
+                 
+                         <!-- text--> 
+                         <div class="dropdown-divider"></div>
+                         <!-- text-->  
+                         <a href="facultysetting.php" class="dropdown-item"><i class="ti-settings"></i> Account Setting</a>
+                         <!-- text--> 
+                         <div class="dropdown-divider"></div>
+                         <!-- text-->  
+                         <a href="logout.php" class="dropdown-item"><i class="fa fa-power-off"></i> Logout</a>
+                    </div>
+                      </div>
+                       
+                <!-- End User profile text-->
+                <!-- Sidebar navigation-->
+                
+                        
+                <nav class="sidebar-nav">
+                    <ul id="sidebarnav">
+                        <li class="nav-devider"></li>
+                      
+                      
+                        
+                        <li> <a  href="faculty.php" ><i class="mdi mdi-gauge"></i><span class="hide-menu">Dashboard</span></a>
+                        </li>
 
-                                       <li> <a href="facultyinsurance.php" ><i class="mdi mdi-seat-recline-extra"></i><span class="hide-menu" >Insurance Companies</span></a>
-                                       </li>
-                                       
-                                       <li> <a href="facultyblacklist.php" ><i class="mdi mdi-block-helper"></i><span class="hide-menu" >Blacklist</span></a>
-                                       </li>
-                                       
-                                       <li> <a class="has-arrow waves-effect waves-dark" aria-expanded="false" href="#" ><i class="mdi mdi-credit-card"></i><span  class="hide-menu">Payment</span></a>
-                                        <ul aria-expanded="false" class="collapse">
-                                            <li><a href="facultypayment.php#report">Payment Report</a></li>
-                                            <li><a href="facultypayment.php#entry">Payment Entry Coordinator</a></li>
-                                            <li><a href="facultypayment.php#verify">Payment Verification</a></li>
-                                        </ul>
-                                        </li>
-                                       
-                                          <li> <a  href="facultybonafide.php" ><i class="mdi mdi-file-document"></i><span class="hide-menu">Bonafide</span></a>
-                                       </li>
-                                       <li> <a  href="facultyroom.php" ><i class="mdi mdi-home"></i><span class="hide-menu">Room Allocation</span></a>
-                                       </li>  
-                                       <li> <a  href="facultyupdatestatus.php" ><i class="mdi mdi-comment-plus-outline"></i><span class="hide-menu">Update Status</span></a>
-                                       </li>    
-                                      </ul>
-                               </nav>
-                               
-                               <!-- End Sidebar navigation -->
-                           </div>
+                        <li> <a href="facultycompanyapproval.php" ><i class="mdi mdi-checkbox-marked-circle-outline"></i><span class="hide-menu">Company Approvals</span></a>
+                        </li>
+                       
+                      
+                        <li> <a href="facultycreatetrip.php" ><i class="mdi mdi-voice"></i><span class="hide-menu">Create Trip</span></a>
+                        </li>
+                        
+                        <li> <a href="facultyinvoice.php" ><i class="mdi mdi-cursor-text"></i><span class="hide-menu" >Invoice Page</span></a>
+                          </li>
+                        
+                        <li> <a href="facultyundertaking.php" ><i class="mdi mdi-clipboard-text"></i><span class="hide-menu" >Undertaking</span></a>
+                        </li>
+
+                        <li> <a href="facultyinsurance.php" ><i class="mdi mdi-seat-recline-extra"></i><span class="hide-menu" >Insurance Companies</span></a>
+                        </li>
+                        
+                        <li> <a href="facultyblacklist.php" ><i class="mdi mdi-block-helper"></i><span class="hide-menu" >Blacklist</span></a>
+                        </li>
+                        
+                        <li> <a class="has-arrow waves-effect waves-dark" aria-expanded="false" href="#" ><i class="mdi mdi-credit-card"></i><span  class="hide-menu">Payment</span></a>
+                            <ul aria-expanded="false" class="collapse">
+                                <li><a href="facultypayment.php#report">Payment Report</a></li>
+                                <li><a href="facultypayment.php#entry">Payment Entry Coordinator</a></li>
+                                <li><a href="facultypayment.php#verify">Payment Verification</a></li>
+                            </ul>
+                            </li>                       
+                           <li> <a  href="facultybonafide.php" ><i class="mdi mdi-file-document"></i><span class="hide-menu">Bonafide</span></a>
+                        </li>
+                        <li> <a  href="facultyroom.php" ><i class="mdi mdi-home"></i><span class="hide-menu">Room Allocation</span></a>
+                        </li> 
+                        <li> <a  href="facultyupdatestatus.php" ><i class="mdi mdi-comment-plus-outline"></i><span class="hide-menu">Update Status</span></a>
+                        </li>    
                            
-                           <!-- End Sidebar scroll-->
-                       </aside>
+                        
+                       </ul>
+                </nav>
+                
+                <!-- End Sidebar navigation -->
+            </div>
+            
+            <!-- End Sidebar scroll-->
+        </aside>
 
 
 
@@ -312,6 +314,77 @@ else {
                 <!-- ============================================================== -->
                 <!-- Start Page Content -->
                 <!-- ============================================================== -->
+                <div class="row"  >
+                    <div class="col-12">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4 class="card-title">Approval Requests</h4>
+										 <div class="table-responsive">
+                                            <table id="demo-foo-addrow" class="table m-t-30 table-hover no-wrap contact-list" data-page-size="10">
+                                                <thead>
+                                                    <tr>
+                                                        <th>No.</th>
+                                                        <th>Company Name</th>
+                                                        <th>City</th>
+                                                        <th>Available from</th>
+                                                        <th>Available to</th>
+                                                        <th>Status</th>
+                                                        
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                  <?php
+                                                  
+                                                  
+                                                
+
+                                                    $sql = "SELECT * FROM `approvals` where f_id= ".$userdata['f_id']." ";
+                                                     $result = $conn->query($sql);
+                                                
+
+                                                         
+                     
+                                                    $i = 0;
+                                                  if(mysqli_num_rows($result)>0)
+                                                    {
+                                                       while($data=mysqli_fetch_array($result))
+                                                        {
+                                                            $i++;
+																$sel = "SELECT * FROM `company_person` where c_id= ".$data['c_id']." ";
+                                                                $rel = $conn->query($sel);
+                                                                $datac = mysqli_fetch_array($rel);
+                                                
+                                                   ?>
+
+                                                    <tr class="content">
+                                                        <td><?php echo $i;?></td>
+
+                                                        <td><?php echo $datac['company_name']; ?></td>
+                                                        <td><?php echo $datac['company_city']; ?></td>
+                                                        <td><?php echo $datac['start_date']; ?></td>
+                                                        <td><?php echo $datac['end_date']; ?></td>
+                                                        <td><span class="<?php if($data['status']=="approved") { echo "label label-info"; } else {echo "label label-inverse";}?>"><?php echo $data['status'];?></span></td>
+
+                                                       
+                                                    </tr>
+                                                    <?php
+                                                      
+                                                        }
+                                                      }
+
+                                                    ?>
+                                                    
+                                                </tbody>
+                                              </table>
+                                            
+                                        </div>
+                                      </div>
+                                    
+                                </div>
+                            </div>
+                            
+                        </div>
+				
                 <div class="row">
                         <div class="col-12">
                                 <div class="card">
@@ -430,6 +503,7 @@ else {
                 <!-- End PAge Content -->
                 <!-- ============================================================== -->
                </div>
+			   
             <!-- ============================================================== -->
             <!-- End Container fluid  -->
             <!-- ============================================================== -->

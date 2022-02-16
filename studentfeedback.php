@@ -3,30 +3,33 @@ include('connect-db.php');
 session_start();
 if(isset($_SESSION['username']) && isset($_SESSION['user'])){
     if($_SESSION['user']=="student"){
-$sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username']."";
-$result = mysqli_query($conn,$sel);
-$userdata=mysqli_fetch_array($result);
-}
-else{
-    if($_SESSION['user']=="faculty"){
-        header("Location: faculty.php");
+        $sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username']."";
+        $result = mysqli_query($conn,$sel);
+        $userdata=mysqli_fetch_array($result);        
+        if(isset($_POST['student_feedback']) && isset($_POST['feedback']) && $_POST['feedback'] != '') {
+            $sel = "INSERT INTO studentfeedback (feedback, student_id, visit_id) VALUES ('". $_POST['feedback'] ."', '" . $userdata['student_id'] . "', '" . $userdata['visit_id'] . "')";
+            mysqli_query($conn,$sel);
+        }
+    } else {
+        if($_SESSION['user']=="faculty"){
+            header("Location: faculty.php");
+        }
+        else if($_SESSION['user']=="admin"){
+            header("Location: admin.php");
+        }
+        else if($_SESSION['user']=="parent"){
+            header("Location: parent.php");
+        }
+        else if($_SESSION['user']=="company"){
+            header("Location: company.php");
+        }
+        else if($_SESSION['user']=="agent"){
+            header("Location: agent.php");
+        }
+        else{
+            header("Location: logout.php");
+        }
     }
-    else if($_SESSION['user']=="admin"){
-        header("Location: admin.php");
-    }
-    else if($_SESSION['user']=="parent"){
-        header("Location: parent.php");
-    }
-    else if($_SESSION['user']=="company"){
-        header("Location: company.php");
-    }
-    else if($_SESSION['user']=="agent"){
-        header("Location: agent.php");
-    }
-    else{
-        header("Location: logout.php");
-    }
-}
 }
 else {
 	header("Location: logout.php");
@@ -316,12 +319,12 @@ else {
                             <div class="card">
                                   <div class="card-body">
                                         <h3 class="card-title">Feedback/Report</h3>
-                                        <form method="post">
-                                                <div class="form-group">
-                                                    <textarea class="textarea_editor form-control" rows="15" placeholder="Enter feedback and share link of report ..."></textarea>
-                                                </div>
-                                                <a class="btn btn-success" href="" >Submit Feedback</a>
-                                            </form>
+                                        <form action="<?=$_SERVER['PHP_SELF']?>" method="POST">
+                                            <div class="form-group">
+                                                <textarea class="textarea_editor form-control" rows="15" placeholder="Enter feedback and share link of report ..." name="feedback"></textarea>
+                                            </div>
+                                            <button type="submit" name="student_feedback" class="btn btn-success">Submit Feedback</button>
+                                        </form>
                                     </div>                     
                             </div>
                             

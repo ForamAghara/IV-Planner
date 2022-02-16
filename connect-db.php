@@ -16,7 +16,7 @@ $server = 'localhost';
 
 $user = 'root';
 
-$pass = '';
+$pass = 'root';
 
 $db = 'ivplanner';
 

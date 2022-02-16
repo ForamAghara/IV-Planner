@@ -6,6 +6,11 @@ if(isset($_SESSION['username']) && isset($_SESSION['user']) ){
 $sel = "SELECT * from `faculty` where `f_id` = ".$_SESSION['username']."";
 $result = mysqli_query($conn,$sel);
 $userdata=mysqli_fetch_array($result);
+    if(isset($_POST['status']))
+    {
+        $sel = "INSERT INTO my_status (name, description, f_id) VALUES ('".$userdata['name']."','".$_POST['description']."', " .$userdata['f_id']. ")";
+        mysqli_query($conn,$sel);
+    }
 }
 else{
     if($_SESSION['user']=="admin"){
@@ -177,7 +182,7 @@ else {
                                             <div class="u-img"><img src="assets/images/users/profile.png" alt="user"></div>
                                             <div class="u-text">
                                             <h4><?php echo $userdata['name']; ?></h4>
-                                            <p class="text-muted"><?php echo $userdata['email_id']; ?></p>a href="facultyprofile.php" class="btn btn-rounded btn-danger btn-sm">My Profile</a></div>
+                                            <p class="text-muted"><?php echo $userdata['email_id']; ?></p><a href="facultyprofile.php" class="btn btn-rounded btn-danger btn-sm">My Profile</a></div>
                                         </div>
                                     </li>
                                    
@@ -322,9 +327,9 @@ else {
                                         <h3 class="card-title">Update Status</h3>
                                         <form method="post">
                                                 <div class="form-group">
-                                                    <textarea class="textarea_editor form-control" rows="15" placeholder="Enter feedback and share link of report ..."></textarea>
+                                                    <textarea class="textarea_editor form-control" rows="15" placeholder="Enter feedback and share link of report ..." name="description"></textarea>
                                                 </div>
-                                                <a class="btn btn-success" href="" >Post</a>
+                                                <button type="submit" name="status" class="btn btn-success">Post</button>
                                             </form>
                                     </div>                     
                             </div>

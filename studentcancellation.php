@@ -6,6 +6,13 @@ if(isset($_SESSION['username']) && isset($_SESSION['user'])){
 $sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username']."";
 $result = mysqli_query($conn,$sel);
 $userdata=mysqli_fetch_array($result);
+if(isset($_GET['trip_cancel']) && $_GET['trip_cancel'] == 1) {
+    $sel = "UPDATE student SET trip_cancel = 1 WHERE student_id = " . $userdata['student_id'];
+    mysqli_query($conn,$sel);    
+    $sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username']."";
+    $result = mysqli_query($conn,$sel);
+    $userdata=mysqli_fetch_assoc($result);
+}
 }
 else{
     if($_SESSION['user']=="faculty"){
@@ -311,15 +318,21 @@ else {
                 <!-- Row -->
                 <div class="row">
                     <!-- Column -->
+                    <?php  $sel1 = "SELECT * from `visit` where visit_id= ".$userdata['visit_id']."";
+                                             $re = $conn->query($sel1);
+                                             $a=mysqli_fetch_array($re);
+                        $date_diff = round(abs(strtotime($a['starting_date']) - strtotime(date('Y-m-d')))/86400);
+                    ?>
                     <div class="col-12">
                             <div class="card">
                                   <div class="card-body">
                                         <h3 class="card-title">Trip Cancellation</h3>
                                         <div class="form-group row">
-                                        <div class="col-md-5"><small>Visit Date : 23/12/2018</small></div></br> 
-                                        <div class="col-md-5"><small>Today's Date : 16/12/2018</small></div> 
+                                        <div class="col-md-5"><small>Visit Date : <?=$a['starting_date']?></small></div>
+                                        <div class="col-md-5"><small>Today's Date : <?=date('Y-m-d')?></small></div>
                                     </div>
-                                        <h6>There are 7 days left for the visit, cancelling would give you 50% refund as per cancellation policy!!</h6>
+                                        <h6>There are <?=$date_diff?>
+                                        days left for the visit, cancelling would give you <?php if($date_diff < 2) {echo '75%';} else if($date_diff < 7) {echo '50%';} ?> refund as per cancellation policy!!</h6>
                                         <h6>Are you sure??</h6>
 										
 										</br></br>
@@ -328,7 +341,7 @@ else {
 											<h6>-> 50% - If cancelled 7 days prior to the departure of the trip.</h6>
 												<h6>-> 75% - If cancelled 2 days prior to the departure of the trip.</h6>
 												</br></br>
-                                        <a href="" class="btn btn-success">Request Cancellation</a>
+                                        <a href="studentcancellation.php?trip_cancel=1" class="btn btn-success">Request Cancellation</a>
                                         
                                     
                                     </div>

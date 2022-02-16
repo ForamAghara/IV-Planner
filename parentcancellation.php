@@ -6,6 +6,9 @@ if(isset($_SESSION['username']) && isset($_SESSION['user']) ){
 $sel = "SELECT * from `parent` where `p_id` = ".$_SESSION['username']."";
 $result = mysqli_query($conn,$sel);
 $userdata=mysqli_fetch_array($result);
+$sel = "SELECT trip_cancel from `student` where `student_id` = ".$userdata['student_id']."";
+$result = mysqli_query($conn,$sel);
+$student=mysqli_fetch_assoc($result);
 }
 else{
     if($_SESSION['user']=="faculty"){
@@ -315,18 +318,25 @@ else {
                 <!-- Row -->
                 <div class="row">
                     <!-- Column -->
+                    <?php  $sel1 = "SELECT * from `visit` where visit_id= ".$userdata['visit_id']."";
+                                             $re = $conn->query($sel1);
+                                             $a=mysqli_fetch_array($re);
+                        $date_diff = round(abs(strtotime($a['starting_date']) - strtotime(date('Y-m-d')))/86400);
+                    ?>
                     <div class="col-12">
                             <div class="card">
                                   <div class="card-body">
                                         <h3 class="card-title">Trip Cancellation</h3>
-                                        <h6>There are 7 days left for the visit, cancelling would give you 50% refund as per cancellation policy!!</h6>
+                                        <h6>There are <?=$date_diff?>
+                                        days left for the visit, cancelling would give you <?php if($date_diff < 2) {echo '75%';} else if($date_diff < 7) {echo '50%';} ?> refund as per cancellation policy!!</h6>
                                         
                                     	</br></br>
 										<h5>Cancellation Policy (Norms set by Travel Agent)</h5>
 										<h6>-> The initial advance in non-refundable</h6>
 											<h6>-> 50% - If cancelled 7 days prior to the departure of the trip.</h6>
 												<h6>-> 75% - If cancelled 2 days prior to the departure of the trip.</h6>
-												</br>
+                                                </br>
+                                                Status: <?=$student['trip_cancel']?'Requested for cancel':'Not Cancelled'?>
                                     </div>
 
                                 

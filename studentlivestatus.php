@@ -3,10 +3,13 @@ include('connect-db.php');
 session_start();
 if(isset($_SESSION['username']) && isset($_SESSION['user'])){
     if($_SESSION['user']=="student"){
-$sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username']."";
-$result = mysqli_query($conn,$sel);
-$userdata=mysqli_fetch_array($result);
-}
+        $sel = "SELECT * from `student` where `enroll_no` = ".$_SESSION['username']."";
+        $result = mysqli_query($conn,$sel);
+        $userdata=mysqli_fetch_array($result);
+        $sel = "SELECT * from `my_status` where `f_id` = ".$userdata['f_id'];
+        $result = mysqli_query($conn,$sel);
+        $live_status=mysqli_fetch_all($result, MYSQLI_ASSOC);          
+    }
 else{
     if($_SESSION['user']=="faculty"){
         header("Location: faculty.php");
@@ -316,60 +319,20 @@ else {
                             <div class="card">
                                   <div class="card-body">
                                     <div class="comment-widgets m-b-20">
-                                        <!-- Comment Row -->
-                                        <div class="d-flex flex-row comment-row">
-                                            <div class="p-2"><span class="round"><img src="assets/images/users/1.jpg" alt="user" width="50"></span></div>
-                                            <div class="comment-text w-100">
-                                                <h5>James Anderson</h5>
-                                                <div class="comment-footer">
-                                                    <span class="date">Nov 14, 2018</span>
-                                                   
-                                                    </span>
-                                                </div>
-                                                <p class="m-b-5 m-t-10">Lorem Ipsum is simply dummy text of the printing and type setting industry. Lorem Ipsum has beenorem Ipsum is simply dummy text of the printing and type setting industry.</p>
-                                                <a class="image-popup-no-margins" href="assets/images/iv.jpg" title="At Company"><img width="50%" src="assets/images/iv.jpg" alt=""></a>
-                                            </div>
-                                        </div>
-                                        <!-- Comment Row -->
-                                        <div class="d-flex flex-row comment-row ">
-                                            <div class="p-2"><span class="round"><img src="assets/images/users/2.jpg" alt="user" width="50"></span></div>
-                                            <div class="comment-text active w-100">
-                                                <h5>Michael Jorden</h5>
-                                                <div class="comment-footer">
-                                                    <span class="date">Nov 17, 2018</span>
-                                                   
-                                                    
-                                                </div>
-                                                <p class="m-b-5 m-t-10">Lorem Ipsum is simply dummy text of the printing and type setting industry. Lorem Ipsum has beenorem Ipsum is simply dummy text of the printing and type setting industry..</p>
-                                                <a class="image-popup-no-margins" href="assets/images/location.jpg" title="Location"><img src="assets/images/location.jpg" alt=""></a>
-                                            </div>
-                                        </div>
-                                        <!-- Comment Row -->
-                                        <div class="d-flex flex-row comment-row">
-                                            <div class="p-2"><span class="round"><img src="assets/images/users/3.jpg" alt="user" width="50"></span></div>
-                                            <div class="comment-text w-100">
-                                                <h5>Johnathan Doeting</h5>
-                                                <div class="comment-footer">
-                                                    <span class="date">Dec 1, 2018</span>
-                                                   
-                                                    </span>
-                                                </div>
-                                                <p class="m-b-5 m-t-10">Lorem Ipsum is simply dummy text of the printing and type setting industry. Lorem Ipsum has beenorem Ipsum is simply dummy text of the printing and type setting industry.</p>
-                                            </div>
-                                        </div>
+                                        <?php
+                                            foreach($live_status as $status):
+                                        ?>
                                         <!-- Comment Row -->
                                         <div class="d-flex flex-row comment-row">
                                             <div class="p-2"><span class="round"><img src="assets/images/users/4.jpg" alt="user" width="50"></span></div>
                                             <div class="comment-text w-100">
-                                                <h5>James Anderson</h5>
-                                                <div class="comment-footer">
-                                                    <span class="date">Dec 12, 2018</span>
-                                                   
-                                                    </span>
-                                                </div>
-                                                <p class="m-b-5 m-t-10">Lorem Ipsum is simply dummy text of the printing and type setting industry. Lorem Ipsum has beenorem Ipsum is simply dummy text of the printing and type setting industry..</p>
+                                                <h5><?=$status['name']?></h5>
+                                                <p class="m-b-5 m-t-10"><?=$status['description']?></p>
                                             </div>
                                         </div>
+                                        <?php
+                                            endforeach;
+                                        ?>
                                     </div>                        
                                     </div>
                             </div>
